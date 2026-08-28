@@ -1,78 +1,724 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #f5f5f7;
-      --fg: #1d1d1f;
-      --muted: #6e6e73;
-      --card: #ffffff;
-      --border: #e5e5ea;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #111113;
-        --fg: #f5f5f7;
-        --muted: #a1a1a6;
-        --card: #1c1c1e;
-        --border: #2c2c2e;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
-                   "Noto Sans KR", Roboto, sans-serif;
-      padding: 24px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 48px 40px;
-      text-align: center;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    }
-    h1 {
-      margin: 0 0 12px;
-      font-size: clamp(2rem, 6vw, 3rem);
-      letter-spacing: -0.02em;
-    }
-    p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-    .wave {
-      display: inline-block;
-      animation: wave 2s ease-in-out infinite;
-      transform-origin: 70% 70%;
-    }
-    @keyframes wave {
-      0%, 60%, 100% { transform: rotate(0deg); }
-      15% { transform: rotate(14deg); }
-      30% { transform: rotate(-8deg); }
-      45% { transform: rotate(14deg); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>활자 견본실</title>
+<meta name="description" content="한글과 라틴을 나란히 놓고 크기·자간·행간·굵기를 직접 움직여 보는 활자 견본지.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ─────────────────────────────────────────────
+   토큰 — 기본은 라이트(포슬린 지면). 다크는 토큰만 다시 정의한다.
+   ───────────────────────────────────────────── */
+:root {
+  color-scheme: light dark;
+
+  --paper:      #eef0f3;
+  --paper-2:    #f7f8fa;
+  --ink:        #111318;
+  --ink-soft:   #454b57;
+  --muted:      #7b8291;
+  --rule:       #c9ced8;
+  --rule-soft:  #dde1e8;
+  --ultra:      #2b3ce8;
+  --coral:      #ff7a6b;
+  --sel:        #d9dcfb;
+
+  --f-display: "Bodoni Moda", "Times New Roman", serif;
+  --f-body:    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* 8px 기반 간격 스케일 */
+  --s-1: .5rem;  --s-2: 1rem;   --s-3: 1.5rem;
+  --s-4: 2.5rem; --s-5: 4rem;   --s-6: 7rem;
+
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --measure: 34rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #0e1014;
+    --paper-2:   #161a21;
+    --ink:       #e9e6df;
+    --ink-soft:  #b4b8c2;
+    --muted:     #7a8090;
+    --rule:      #2a303b;
+    --rule-soft: #1d222a;
+    --ultra:     #7b88ff;
+    --coral:     #ff9184;
+    --sel:       #29306b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:     #0e1014;
+  --paper-2:   #161a21;
+  --ink:       #e9e6df;
+  --ink-soft:  #b4b8c2;
+  --muted:     #7a8090;
+  --rule:      #2a303b;
+  --rule-soft: #1d222a;
+  --ultra:     #7b88ff;
+  --coral:     #ff9184;
+  --sel:       #29306b;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+::selection { background: var(--sel); color: var(--ink); }
+
+:focus-visible {
+  outline: 2px solid var(--ultra);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* 히어로 뒤 망점 필드 */
+#field {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── 공통 레이아웃: 왼쪽 여백에 사양, 오른쪽에 본문 ── */
+.sheet {
+  position: relative;
+  z-index: 1;
+  max-width: 84rem;
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+.band {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-3);
+  padding-block: var(--s-6);
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 62rem) {
+  .band { grid-template-columns: 13rem minmax(0, 1fr); gap: var(--s-5); }
+}
+@media (max-width: 61.99rem) {
+  .band > .margin-note { order: 2; padding-top: var(--s-2); border-top: 1px solid var(--rule); }
+  .band > :not(.margin-note) { order: 1; }
+}
+
+/* 여백 사양 표기 */
+.margin-note {
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  line-height: 1.9;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.margin-note b {
+  display: block;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: .12em;
+}
+.margin-note dl { margin: var(--s-2) 0 0; display: grid; gap: .35rem; }
+.margin-note .row { display: flex; justify-content: space-between; gap: var(--s-2); border-bottom: 1px dotted var(--rule); }
+.margin-note .row span:last-child { color: var(--ink-soft); text-transform: none; }
+
+h2 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+h2 em {
+  font-family: var(--f-body);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--ultra);
+}
+
+p { margin: 0 0 var(--s-2); max-width: var(--measure); color: var(--ink-soft); }
+p.tight { margin-bottom: 0; }
+
+/* ─────────── 상단 바 ─────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: .875rem var(--gutter);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s ease;
+}
+.topbar[data-stuck="true"] { border-bottom-color: var(--rule); }
+.mark {
+  font-family: var(--f-display);
+  font-size: 1.0625rem;
+  letter-spacing: .01em;
+}
+.mark i { font-style: italic; color: var(--coral); }
+.topbar nav {
+  display: flex;
+  gap: var(--s-3);
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.topbar nav a { color: var(--muted); text-decoration: none; transition: color .2s; }
+.topbar nav a:hover { color: var(--ink); }
+@media (max-width: 46rem) { .topbar nav { display: none; } }
+
+/* ─────────── 히어로 ─────────── */
+.hero { padding-block: clamp(4rem, 13vh, 8rem) var(--s-6); border-top: 0; }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); max-width: 8rem; }
+
+.display {
+  margin: 0;
+  font-family: var(--f-body);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 8.6vw, 7rem);
+  line-height: 1.02;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.display .line { display: block; overflow: hidden; }
+.display .line > span { display: block; }
+.display em {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -.01em;
+  color: var(--ultra);
+  padding-right: .06em;
+}
+.hero .lede {
+  margin-top: var(--s-4);
+  font-size: 1.0625rem;
+  max-width: 30rem;
+}
+
+.hero-meta {
+  margin-top: var(--s-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--rule);
+}
+.hero-meta b { color: var(--ink); font-weight: 500; }
+
+/* ─────────── 견본 조작대 ─────────── */
+.stage {
+  --sz: 68;
+  --tr: -0.02;
+  --lh: 1.15;
+  --wt: 800;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  overflow: hidden;
+}
+.stage-out {
+  font-family: var(--f-body);
+  font-size: calc(var(--sz) * 1px);
+  letter-spacing: calc(var(--tr) * 1em);
+  line-height: var(--lh);
+  font-weight: var(--wt);
+  color: var(--ink);
+  margin: 0;
+  max-width: none;
+}
+.stage-out .latin {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--coral);
+}
+.stage-rule { height: 1px; background: var(--rule); margin: clamp(1.25rem, 3vw, 2rem) 0; }
+
+.controls { display: grid; gap: var(--s-3); }
+@media (min-width: 40rem) { .controls { grid-template-columns: 1fr 1fr; gap: var(--s-3) var(--s-4); } }
+
+.ctrl { display: grid; gap: .4rem; }
+.ctrl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ctrl-head output {
+  color: var(--ultra);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.25rem;
+  background: transparent;
+  cursor: ew-resize;
+  margin: 0;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--rule);
+}
+input[type="range"]::-moz-range-track {
+  height: 1px;
+  background: var(--rule);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: .75rem;
+  height: .75rem;
+  margin-top: -.375rem;
+  background: var(--ultra);
+  border: 0;
+  border-radius: 50%;
+  transition: transform .15s ease;
+}
+input[type="range"]::-moz-range-thumb {
+  width: .75rem;
+  height: .75rem;
+  background: var(--ultra);
+  border: 0;
+  border-radius: 50%;
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.35); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.35); }
+
+/* ─────────── 크기 사다리 ─────────── */
+.ramp { display: grid; gap: 0; border-top: 1px solid var(--rule-soft); }
+.step {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: .55rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.step code {
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+.step .sample {
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─────────── 색 ─────────── */
+.swatches { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+@media (min-width: 34rem) { .swatches { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 58rem) { .swatches { grid-template-columns: repeat(4, 1fr); } }
+.swatch {
+  background: var(--paper-2);
+  padding: var(--s-2);
+  display: grid;
+  gap: .75rem;
+  align-content: start;
+}
+.chip { height: 4.5rem; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.swatch dl { margin: 0; font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .04em; display: grid; gap: .1rem; }
+.swatch dt { color: var(--ink); text-transform: uppercase; letter-spacing: .12em; }
+.swatch dd { margin: 0; color: var(--muted); text-transform: uppercase; }
+
+/* ─────────── 스크롤 등장 ─────────── */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.stagger > * { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+.stagger.in > * { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .stagger > * { opacity: 1; transform: none; transition: none; }
+  .display .line > span { transform: none !important; }
+}
+
+/* 초기 로드 시 한 줄씩 올라오는 연출 */
+.display .line > span { transform: translateY(105%); transition: transform 1s cubic-bezier(.16,.84,.28,1); transition-delay: var(--d, 0ms); }
+.loaded .display .line > span { transform: none; }
+
+/* ─────────── 마무리 ─────────── */
+.closing { padding-block: var(--s-6) var(--s-5); border-top: 1px solid var(--rule); }
+.closing h2 { max-width: 22ch; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: var(--s-2);
+  padding: .8rem 1.4rem;
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+  font-family: var(--f-mono);
+  font-size: .75rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: background .2s ease, color .2s ease;
+}
+.btn:hover { background: var(--ultra); color: #fff; }
+.btn span { transition: transform .25s ease; }
+.btn:hover span { transform: translateX(4px); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding: var(--s-3) 0 var(--s-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  justify-content: space-between;
+  font-family: var(--f-mono);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
+</style>
 </head>
 <body>
-  <main class="card">
-    <h1><span class="wave">👋</span> Hello, World!</h1>
-    <p>GitHub Pages로 배포된 첫 번째 웹페이지입니다.</p>
-  </main>
+<canvas id="field" aria-hidden="true"></canvas>
+
+<header class="topbar" id="topbar">
+  <div class="mark">활자 견본실 <i>Specimen</i></div>
+  <nav>
+    <a href="#specimen">견본</a>
+    <a href="#scale">사다리</a>
+    <a href="#palette">색</a>
+  </nav>
+</header>
+
+<div class="sheet">
+
+  <section class="hero band">
+    <div class="margin-note">
+      <b>Colophon</b>
+      <dl>
+        <div class="row"><span>Display</span><span>Bodoni Moda</span></div>
+        <div class="row"><span>Hangul</span><span>Pretendard</span></div>
+        <div class="row"><span>Data</span><span>IBM Plex Mono</span></div>
+        <div class="row"><span>Grid</span><span>13rem + 1fr</span></div>
+      </dl>
+    </div>
+    <div>
+      <p class="eyebrow">견본지 No. 01 — 한글 · 라틴 혼식</p>
+      <h1 class="display">
+        <span class="line"><span style="--d:60ms">화면의 첫인상은</span></span>
+        <span class="line"><span style="--d:150ms"><em>Typography</em>가</span></span>
+        <span class="line"><span style="--d:240ms">결정한다</span></span>
+      </h1>
+      <p class="lede">이 페이지는 스스로가 하나의 견본지입니다. 아래에서 크기·자간·행간·굵기를 직접 움직여 보세요. 값 하나가 문장의 인상을 어디까지 바꾸는지 눈으로 확인할 수 있습니다.</p>
+      <div class="hero-meta">
+        <span>조판 <b>12 / 8px Scale</b></span>
+        <span>본문 폭 <b>34rem</b></span>
+        <span>테마 <b>Light · Dark</b></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="specimen">
+    <div class="margin-note reveal">
+      <b>Fig. 01</b>
+      <dl>
+        <div class="row"><span>Size</span><span id="m-sz">68 px</span></div>
+        <div class="row"><span>Tracking</span><span id="m-tr">-0.020 em</span></div>
+        <div class="row"><span>Leading</span><span id="m-lh">1.15</span></div>
+        <div class="row"><span>Weight</span><span id="m-wt">800</span></div>
+      </dl>
+    </div>
+    <div class="reveal">
+      <h2>값을 만지면 <em>인상</em>이 움직인다</h2>
+      <p>같은 문장도 자간 0.02em 차이로 다르게 읽힙니다. 슬라이더를 끌어 보세요 — 여백의 사양표가 실시간으로 따라옵니다.</p>
+      <div class="stage" id="stage">
+        <p class="stage-out" id="stageOut">글자 사이의 <span class="latin">breathing room</span> 하나가 문장의 온도를 바꾼다</p>
+        <div class="stage-rule"></div>
+        <div class="controls">
+          <label class="ctrl">
+            <span class="ctrl-head">크기 Size <output id="o-sz">68px</output></span>
+            <input type="range" id="r-sz" min="20" max="104" step="1" value="68">
+          </label>
+          <label class="ctrl">
+            <span class="ctrl-head">자간 Tracking <output id="o-tr">-0.020em</output></span>
+            <input type="range" id="r-tr" min="-60" max="120" step="1" value="-20">
+          </label>
+          <label class="ctrl">
+            <span class="ctrl-head">행간 Leading <output id="o-lh">1.15</output></span>
+            <input type="range" id="r-lh" min="90" max="220" step="1" value="115">
+          </label>
+          <label class="ctrl">
+            <span class="ctrl-head">굵기 Weight <output id="o-wt">800</output></span>
+            <input type="range" id="r-wt" min="200" max="900" step="50" value="800">
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="scale">
+    <div class="margin-note reveal">
+      <b>Fig. 02</b>
+      <dl>
+        <div class="row"><span>Ratio</span><span>1.333 · 4단</span></div>
+        <div class="row"><span>Steps</span><span>7</span></div>
+        <div class="row"><span>Base</span><span>16 px</span></div>
+      </dl>
+    </div>
+    <div>
+      <h2 class="reveal">하나의 <em>사다리</em>를 정하고, 벗어나지 않는다</h2>
+      <p class="reveal">임의의 크기를 그때그때 고르면 화면은 반드시 흐트러집니다. 4도음(1.333)으로 7단을 만들고 그 안에서만 고릅니다.</p>
+      <div class="ramp stagger" id="ramp">
+        <div class="step" style="--d:0ms"><code>76 px</code><span class="sample" style="font-size:clamp(2rem,5vw,3.5rem)">견본 Specimen</span></div>
+        <div class="step" style="--d:60ms"><code>57 px</code><span class="sample" style="font-size:clamp(1.75rem,4vw,2.6rem)">견본 Specimen</span></div>
+        <div class="step" style="--d:120ms"><code>43 px</code><span class="sample" style="font-size:clamp(1.5rem,3vw,2rem)">견본 Specimen</span></div>
+        <div class="step" style="--d:180ms"><code>32 px</code><span class="sample" style="font-size:1.5rem">견본 Specimen</span></div>
+        <div class="step" style="--d:240ms"><code>24 px</code><span class="sample" style="font-size:1.125rem">견본 Specimen</span></div>
+        <div class="step" style="--d:300ms"><code>18 px</code><span class="sample" style="font-size:1rem">견본 Specimen</span></div>
+        <div class="step" style="--d:360ms"><code>16 px</code><span class="sample" style="font-size:.875rem">견본 Specimen</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="palette">
+    <div class="margin-note reveal">
+      <b>Fig. 03</b>
+      <dl>
+        <div class="row"><span>Scheme</span><span>Duotone</span></div>
+        <div class="row"><span>Ground</span><span>Porcelain</span></div>
+        <div class="row"><span>Accents</span><span>2</span></div>
+      </dl>
+    </div>
+    <div>
+      <h2 class="reveal">강조는 <em>한 곳</em>에만 쓴다</h2>
+      <p class="reveal">바탕은 순수한 회색 대신 푸른 기가 도는 포슬린. 강조는 울트라마린과 코랄 둘뿐이고, 나머지는 전부 잉크의 농도 차이로 해결합니다.</p>
+      <div class="swatches stagger" id="swatches">
+        <div class="swatch" style="--d:0ms">
+          <div class="chip" style="background:var(--paper)"></div>
+          <dl><dt>Porcelain</dt><dd>바탕 · #eef0f3</dd></dl>
+        </div>
+        <div class="swatch" style="--d:70ms">
+          <div class="chip" style="background:var(--ink)"></div>
+          <dl><dt>Ink</dt><dd>본문 · #111318</dd></dl>
+        </div>
+        <div class="swatch" style="--d:140ms">
+          <div class="chip" style="background:var(--ultra)"></div>
+          <dl><dt>Ultramarine</dt><dd>강조 · #2b3ce8</dd></dl>
+        </div>
+        <div class="swatch" style="--d:210ms">
+          <div class="chip" style="background:var(--coral)"></div>
+          <dl><dt>Coral</dt><dd>보조 · #ff7a6b</dd></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing band">
+    <div class="margin-note reveal">
+      <b>Fin.</b>
+      <dl>
+        <div class="row"><span>Deploy</span><span>GitHub Actions</span></div>
+        <div class="row"><span>Deps</span><span>0</span></div>
+        <div class="row"><span>Motion</span><span>Reduced 대응</span></div>
+      </dl>
+    </div>
+    <div class="reveal">
+      <h2>이 페이지에는 프레임워크가 <em>하나도</em> 없다</h2>
+      <p>HTML 한 장, CSS 한 벌, 짧은 스크립트. 망점 필드는 Canvas로 그리고, 움직임을 원치 않는 사용자에게는 자동으로 멈춥니다. 푸시하면 Actions가 그대로 배포합니다.</p>
+      <a class="btn" href="https://github.com/JeongHyeon2/test-claude">소스 보기 <span>→</span></a>
+    </div>
+  </section>
+
+  <footer>
+    <span>활자 견본실 · No. 01</span>
+    <span>Set in Bodoni Moda &amp; Pretendard</span>
+    <span><a href="https://github.com/JeongHyeon2/test-claude">github.com/JeongHyeon2</a></span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ── 로드 시 헤드라인 등장 ── */
+  requestAnimationFrame(function () { document.body.classList.add("loaded"); });
+
+  /* ── 상단 바 고정 상태 ── */
+  var topbar = document.getElementById("topbar");
+  var onScroll = function () {
+    topbar.dataset.stuck = window.scrollY > 8 ? "true" : "false";
+  };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* ── 스크롤 등장 ── */
+  var targets = document.querySelectorAll(".reveal, .stagger");
+  if ("IntersectionObserver" in window && !reduce) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.1 });
+    targets.forEach(function (t) { io.observe(t); });
+  } else {
+    targets.forEach(function (t) { t.classList.add("in"); });
+  }
+
+  /* ── 견본 조작대 ── */
+  var stage = document.getElementById("stage");
+  var fmt = {
+    sz: function (v) { return v + "px"; },
+    tr: function (v) { return (v / 1000).toFixed(3) + "em"; },
+    lh: function (v) { return (v / 100).toFixed(2); },
+    wt: function (v) { return String(v); }
+  };
+  var margins = { sz: "68 px", tr: "-0.020 em", lh: "1.15", wt: "800" };
+  ["sz", "tr", "lh", "wt"].forEach(function (key) {
+    var input = document.getElementById("r-" + key);
+    var out = document.getElementById("o-" + key);
+    var note = document.getElementById("m-" + key);
+    var apply = function () {
+      var raw = Number(input.value);
+      var css = key === "tr" ? raw / 1000 : key === "lh" ? raw / 100 : raw;
+      stage.style.setProperty("--" + key, css);
+      out.textContent = fmt[key](raw);
+      if (note) note.textContent = fmt[key](raw).replace(/(px|em)$/, " $1");
+    };
+    input.addEventListener("input", apply);
+    apply();
+  });
+
+  /* ── 망점 필드: 커서에 반응하는 하프톤 ── */
+  var canvas = document.getElementById("field");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = 1;
+  var GAP = 30, R = 1.5;
+  var pointer = { x: -9999, y: -9999 };
+  var target = { x: -9999, y: -9999 };
+
+  function readInk() {
+    var v = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+    return v || "#7b8291";
+  }
+  var dotColor = readInk();
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dotColor = readInk();
+    if (reduce) draw(0);
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = dotColor;
+    var reach = 190;
+    for (var y = GAP / 2; y < H; y += GAP) {
+      for (var x = GAP / 2; x < W; x += GAP) {
+        var r = R;
+        if (!reduce) {
+          var dx = x - pointer.x, dy = y - pointer.y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          if (d < reach) {
+            var f = 1 - d / reach;
+            r += f * f * 3.6;
+          }
+          r += Math.sin((x + y) * 0.012 + t * 0.0009) * 0.35;
+        }
+        if (r <= 0.1) continue;
+        ctx.globalAlpha = reduce ? 0.16 : 0.14 + Math.min(r / 5, 1) * 0.5;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 6.2832);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function loop(t) {
+    pointer.x += (target.x - pointer.x) * 0.09;
+    pointer.y += (target.y - pointer.y) * 0.09;
+    draw(t);
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", resize);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+    dotColor = readInk();
+    if (reduce) draw(0);
+  });
+  window.addEventListener("pointermove", function (e) {
+    target.x = e.clientX;
+    target.y = e.clientY;
+  }, { passive: true });
+  window.addEventListener("pointerleave", function () {
+    target.x = -9999; target.y = -9999;
+  });
+
+  resize();
+  if (!reduce) requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
