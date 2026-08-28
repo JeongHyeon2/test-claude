@@ -27,15 +27,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pages
-        # Pages가 아직 켜져 있지 않으면 워크플로 방식으로 자동 활성화한다.
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
+
+      # 저장소 전체가 아니라 공개할 파일만 _site에 모은다 (.git, .github 제외).
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
