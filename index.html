@@ -204,8 +204,20 @@ body[data-motion="on"] .motion-toggle .lbl-off { display: none; }
 .plate .note { margin: 0; font-size: .875rem; line-height: 1.6; color: var(--ink-soft); }
 .plate .hint {
   margin: 0; font-family: var(--f-mono); font-size: .625rem; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--coral);
+  text-transform: uppercase; color: var(--muted);
 }
+.plate .play {
+  margin: 0; font-family: var(--f-mono); font-size: .625rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--coral);
+  display: flex; gap: .45rem; align-items: baseline;
+}
+.plate .play::before { content: "▸"; flex: none; }
+
+/* 상자마다 조작 방식에 맞는 커서 */
+.case { cursor: crosshair; touch-action: none; }
+.case:has(.stagecube), .case[data-demo="lorenz"] { cursor: grab; }
+.case.dragging { cursor: grabbing; }
+.case[data-demo="truchet"], .case:has(.goo), .case:has(.moire) { cursor: cell; }
 
 /* ─────────── 01 진자 파동 ─────────── */
 .pendulums { position: absolute; inset: 0; display: flex; justify-content: center; gap: 3.2%; padding-top: 6%; }
@@ -237,6 +249,12 @@ body[data-motion="on"] .motion-toggle .lbl-off { display: none; }
 .goo b:nth-child(3) { width: 26%; aspect-ratio: 1; left: 56%; top: 42%; animation: drift3 8s ease-in-out infinite; }
 .goo b:nth-child(4) { width: 16%; aspect-ratio: 1; left: 32%; top: 58%; background: var(--case-coral); animation: drift4 13s ease-in-out infinite; }
 .goo b:nth-child(5) { width: 22%; aspect-ratio: 1; left: 20%; top: 12%; animation: drift5 10s ease-in-out infinite; }
+.goo b.cursor {
+  width: 18%; aspect-ratio: 1; left: 0; top: 0;
+  animation: none; opacity: 0; transition: opacity .25s ease;
+  will-change: transform;
+}
+.goo.touched b.cursor { opacity: 1; }
 @keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(90%, 22%); } }
 @keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-60%, 70%); } }
 @keyframes drift3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-80%,-45%); } }
@@ -350,7 +368,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
   <section class="masthead">
     <p class="eyebrow">표본 No. 02 — 열 가지 움직임</p>
     <h1>움직임은 대개<br><em>규칙</em> 하나에서 나온다</h1>
-    <p>흔들리는 진자, 뭉치는 방울, 무리 짓는 점. 화려해 보이는 화면일수록 뒤에 있는 규칙은 짧습니다. 열 개의 표본을 기법별로 늘어놓고, 각각이 무엇으로 움직이는지 명판에 적었습니다.</p>
+    <p>흔들리는 진자, 뭉치는 방울, 무리 짓는 점. 화려해 보이는 화면일수록 뒤에 있는 규칙은 짧습니다. 열 개의 표본을 기법별로 늘어놓고, 각각이 무엇으로 움직이는지 명판에 적었습니다. 전부 만질 수 있습니다 — 끌고, 문지르고, 눌러 보세요.</p>
   </section>
 
   <div class="filters" role="group" aria-label="기법으로 거르기">
@@ -369,15 +387,17 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">01</span><span class="name">진자 파동 <i>Pendulum Wave</i></span><span class="tech">CSS</span></div>
         <p class="note">길이가 조금씩 다른 진자 열여섯 개. 주기가 어긋나면서 뱀처럼 흐르다가 어느 순간 다시 한 줄로 모입니다.</p>
         <p class="hint">animation-duration만 다르게 준 것</p>
+        <p class="play">가로로 문지르면 시간이 감깁니다</p>
       </figcaption>
     </figure>
 
     <figure class="vitrine" data-tech="svg">
-      <div class="case"><div class="goo"><b></b><b></b><b></b><b></b><b></b></div></div>
+      <div class="case"><div class="goo"><b></b><b></b><b></b><b></b><b></b><b class="cursor"></b></div></div>
       <figcaption class="plate">
         <div class="head"><span class="no">02</span><span class="name">방울 뭉치기 <i>Metaball</i></span><span class="tech">SVG 필터</span></div>
         <p class="note">그냥 원 다섯 개인데 가까워지면 액체처럼 들러붙습니다. 흐리게 만든 뒤 알파 대비를 극단으로 올리면 경계가 하나로 이어집니다.</p>
         <p class="hint">feGaussianBlur → feColorMatrix</p>
+        <p class="play">커서가 여섯 번째 방울이 됩니다</p>
       </figcaption>
     </figure>
 
@@ -387,6 +407,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">03</span><span class="name">모아레 <i>Moiré</i></span><span class="tech">CSS</span></div>
         <p class="note">같은 점 격자 두 장을 겹치고 한 장만 천천히 돌립니다. 어디에도 그리지 않은 커다란 무늬가 저절로 나타납니다.</p>
         <p class="hint">background-size 11px 격자 두 겹</p>
+        <p class="play">커서로 각도와 배율을 맞춰 보세요</p>
       </figcaption>
     </figure>
 
@@ -396,6 +417,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">04</span><span class="name">무리 짓기 <i>Boids</i></span><span class="tech">Canvas</span></div>
         <p class="note">우두머리가 없습니다. 부딪히지 않기, 이웃과 방향 맞추기, 무리 쪽으로 붙기 — 규칙 세 개뿐인데 새 떼처럼 움직입니다.</p>
         <p class="hint">Separation · Alignment · Cohesion</p>
+        <p class="play">커서를 따라옵니다 · 누르면 흩어집니다</p>
       </figcaption>
     </figure>
 
@@ -405,6 +427,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">05</span><span class="name">물결 격자 <i>Ripple Grid</i></span><span class="tech">CSS</span></div>
         <p class="note">점 196개가 전부 같은 애니메이션을 씁니다. 가운데에서 먼 점일수록 시작을 늦췄을 뿐인데 파문이 퍼져 나갑니다.</p>
         <p class="hint">animation-delay = 중심까지의 거리</p>
+        <p class="play">파문의 진원이 커서로 옮겨갑니다</p>
       </figcaption>
     </figure>
 
@@ -414,6 +437,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">06</span><span class="name">흐름장 <i>Flow Field</i></span><span class="tech">Canvas</span></div>
         <p class="note">화면 전체에 보이지 않는 방향이 깔려 있고, 입자 수백 개가 거기에 몸을 맡깁니다. 지우지 않고 옅게 덧칠해서 궤적이 남습니다.</p>
         <p class="hint">각 좌표의 각도 = sin·cos 조합</p>
+        <p class="play">커서 주위에 소용돌이 · 클릭 → 궤적 지우기</p>
       </figcaption>
     </figure>
 
@@ -423,6 +447,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">07</span><span class="name">로렌츠 끌개 <i>Lorenz</i></span><span class="tech">Canvas</span></div>
         <p class="note">날씨를 단순화하다 나온 식 세 줄. 절대 같은 자리를 두 번 지나지 않으면서도 영원히 나비 모양 안에 갇혀 있습니다.</p>
         <p class="hint">σ=10 · ρ=28 · β=8/3</p>
+        <p class="play">끌어서 돌려 보세요</p>
       </figcaption>
     </figure>
 
@@ -432,6 +457,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         <div class="head"><span class="no">08</span><span class="name">굴러가는 정육면체 <i>Tumbling Cube</i></span><span class="tech">CSS</span></div>
         <p class="note">면 여섯 장을 각자 회전시켜 세운 진짜 3D. 라이브러리 없이 transform-style 한 줄이면 브라우저가 원근을 계산해 줍니다.</p>
         <p class="hint">transform-style: preserve-3d</p>
+        <p class="play">끌어서 직접 굴려 보세요</p>
       </figcaption>
     </figure>
 
@@ -439,8 +465,9 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
       <div class="case" data-demo="life"></div>
       <figcaption class="plate">
         <div class="head"><span class="no">09</span><span class="name">생명 게임 <i>Game of Life</i></span><span class="tech">Canvas</span></div>
-        <p class="note">이웃이 셋이면 태어나고, 둘·셋이 아니면 죽습니다. 그것만으로 기어다니는 것과 반복하는 것이 생겨납니다. 눌러서 다시 뿌려 보세요.</p>
-        <p class="hint">클릭 → 새로 파종</p>
+        <p class="note">이웃이 셋이면 태어나고, 둘·셋이 아니면 죽습니다. 그것만으로 기어다니는 것과 반복하는 것이 생겨납니다.</p>
+        <p class="hint">B3 / S23</p>
+        <p class="play">끌어서 세포를 그리세요 · 더블클릭 → 새로 파종</p>
       </figcaption>
     </figure>
 
@@ -448,8 +475,9 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
       <div class="case" data-demo="truchet"></div>
       <figcaption class="plate">
         <div class="head"><span class="no">10</span><span class="name">트뤼셰 타일 <i>Truchet</i></span><span class="tech">Canvas</span></div>
-        <p class="note">사분원이 그려진 타일 한 종류를 아무 방향으로나 깝니다. 타일은 하나뿐인데 미로 같은 길이 끝없이 이어집니다. 눌러서 다시 깔아 보세요.</p>
-        <p class="hint">클릭 → 새로 깔기</p>
+        <p class="note">사분원이 그려진 타일 한 종류를 아무 방향으로나 깝니다. 타일은 하나뿐인데 미로 같은 길이 끝없이 이어집니다.</p>
+        <p class="hint">타일 한 종류 · 방향만 무작위</p>
+        <p class="play">지나가면 타일이 뒤집힙니다 · 클릭 → 새로 깔기</p>
       </figcaption>
     </figure>
 
@@ -485,13 +513,17 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
 
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var body = document.body;
-  var C = {
-    bone:  "#e9e6df",
-    ultra: "#7b88ff",
-    coral: "#ff9184",
-    dim:   "#6a7183",
-    case:  "#0e1014"
-  };
+  var running = [];
+  var byNode = new Map();
+  var C = { bone: "#e9e6df", ultra: "#7b88ff", coral: "#ff9184", dim: "#6a7183", case: "#0e1014" };
+
+  function rel(el, e) {
+    var r = el.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top, u: (e.clientX - r.left) / r.width, v: (e.clientY - r.top) / r.height };
+  }
+
+  /* 조작은 모션이 꺼져 있어도 살아 있어야 한다. 정지 상태면 한 프레임만 다시 그린다. */
+  function nudge(api) { if (api && !api.isRunning()) api.still(); }
 
   /* ── 모션 스위치 ── */
   var toggle = document.getElementById("motionToggle");
@@ -500,9 +532,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
     toggle.setAttribute("aria-pressed", String(on));
     running.forEach(function (r) { on ? r.start() : r.stop(); });
   }
-  toggle.addEventListener("click", function () {
-    setMotion(body.dataset.motion !== "on");
-  });
+  toggle.addEventListener("click", function () { setMotion(body.dataset.motion !== "on"); });
 
   /* ── 상단 바 ── */
   var topbar = document.getElementById("topbar");
@@ -510,37 +540,150 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
 
-  /* ── CSS 표본의 DOM 생성 ── */
+  /* ─────────────────────────────────────────
+     01 — 진자 파동: 가로로 문지르면 시간이 감긴다.
+     일시정지한 CSS 애니메이션에 음수 delay를 주면 그 시점의 한 컷이 나온다.
+     ───────────────────────────────────────── */
   var pendHost = document.querySelector('[data-build="pendulums"]');
+  var rods = [];
   for (var i = 0; i < 16; i++) {
     var rod = document.createElement("div");
     rod.className = "pend";
-    /* 주기가 T/(24+i)라서 모든 진자가 T마다 다시 한 줄로 모인다 */
     rod.style.setProperty("--t", (48000 / (24 + i) / 2).toFixed(0) + "ms");
     pendHost.appendChild(rod);
+    rods.push(rod);
   }
-
-  var rippleHost = document.querySelector('[data-build="ripple"]');
-  var N = 14, mid = (N - 1) / 2;
-  for (var y = 0; y < N; y++) {
-    var row = document.createElement("div");
-    row.className = "row";
-    for (var x = 0; x < N; x++) {
-      var dot = document.createElement("i");
-      var dist = Math.sqrt((x - mid) * (x - mid) + (y - mid) * (y - mid));
-      dot.style.setProperty("--d", (dist * 95).toFixed(0) + "ms");
-      row.appendChild(dot);
+  (function () {
+    var host = pendHost.parentNode;
+    function scrub(e) {
+      var t = rel(host, e).u * 48000;
+      rods.forEach(function (r) {
+        r.style.animationPlayState = "paused";
+        r.style.animationDelay = (-t).toFixed(0) + "ms";
+      });
     }
-    rippleHost.appendChild(row);
-  }
+    function release() {
+      rods.forEach(function (r) { r.style.animationPlayState = ""; r.style.animationDelay = ""; });
+    }
+    host.addEventListener("pointermove", scrub);
+    host.addEventListener("pointerleave", release);
+  })();
 
+  /* ─────────────────────────────────────────
+     02 — 메타볼: 커서가 여섯 번째 방울이 되어 다른 방울과 들러붙는다.
+     ───────────────────────────────────────── */
+  (function () {
+    var goo = document.querySelector(".goo");
+    if (!goo) return;
+    var blob = goo.querySelector("b.cursor");
+    var host = goo.parentNode;
+    host.addEventListener("pointermove", function (e) {
+      var p = rel(host, e);
+      goo.classList.add("touched");
+      blob.style.transform = "translate(" + (p.x - blob.offsetWidth / 2) + "px," + (p.y - blob.offsetHeight / 2) + "px)";
+    });
+    host.addEventListener("pointerleave", function () { goo.classList.remove("touched"); });
+  })();
+
+  /* ─────────────────────────────────────────
+     03 — 모아레: 커서로 겹친 격자의 각도와 배율을 직접 맞춘다.
+     ───────────────────────────────────────── */
+  (function () {
+    var moire = document.querySelector(".moire");
+    if (!moire) return;
+    var top = moire.querySelector("span:last-child");
+    var host = moire.parentNode;
+    host.addEventListener("pointermove", function (e) {
+      var p = rel(host, e);
+      top.style.animation = "none";
+      top.style.transform = "rotate(" + (p.u * 16 - 8).toFixed(2) + "deg) scale(" + (0.93 + p.v * 0.14).toFixed(3) + ")";
+    });
+    host.addEventListener("pointerleave", function () {
+      top.style.animation = "";
+      top.style.transform = "";
+    });
+  })();
+
+  /* ─────────────────────────────────────────
+     05 — 물결 격자: 파문의 진원을 커서 자리로 옮긴다.
+     ───────────────────────────────────────── */
+  (function () {
+    var host = document.querySelector('[data-build="ripple"]');
+    var N = 14, mid = (N - 1) / 2, dots = [];
+    for (var y = 0; y < N; y++) {
+      var row = document.createElement("div");
+      row.className = "row";
+      for (var x = 0; x < N; x++) {
+        var dot = document.createElement("i");
+        dot.dataset.gx = x; dot.dataset.gy = y;
+        row.appendChild(dot);
+        dots.push({ el: dot, x: x, y: y });
+      }
+      host.appendChild(row);
+    }
+    var ox = mid, oy = mid, queued = false;
+    function paint() {
+      queued = false;
+      for (var k = 0; k < dots.length; k++) {
+        var d = dots[k];
+        var dist = Math.sqrt((d.x - ox) * (d.x - ox) + (d.y - oy) * (d.y - oy));
+        d.el.style.setProperty("--d", (dist * 95).toFixed(0) + "ms");
+      }
+    }
+    paint();
+    var box = host.parentNode;
+    box.addEventListener("pointermove", function (e) {
+      var p = rel(box, e);
+      /* 격자는 상자 가운데에 놓여 있으므로 정규 좌표를 그대로 칸으로 환산한다 */
+      ox = p.u * (N - 1); oy = p.v * (N - 1);
+      if (!queued) { queued = true; requestAnimationFrame(paint); }
+    });
+    box.addEventListener("pointerleave", function () {
+      ox = mid; oy = mid;
+      if (!queued) { queued = true; requestAnimationFrame(paint); }
+    });
+  })();
+
+  /* ─────────────────────────────────────────
+     08 — 정육면체: 끌어서 직접 굴린다. 손을 떼고 상자를 벗어나면 다시 자동으로 돈다.
+     ───────────────────────────────────────── */
   document.querySelectorAll(".cube").forEach(function (cube) {
     var half = function () { cube.style.setProperty("--half", (cube.clientWidth / 2).toFixed(1)); };
     half();
     new ResizeObserver(half).observe(cube);
+
+    var host = cube.closest(".case");
+    var drag = null, rx = -18, ry = 28;
+    host.addEventListener("pointerdown", function (e) {
+      drag = { x: e.clientX, y: e.clientY, rx: rx, ry: ry };
+      host.classList.add("dragging");
+      host.setPointerCapture(e.pointerId);
+      cube.style.animation = "none";
+    });
+    host.addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      ry = drag.ry + (e.clientX - drag.x) * 0.5;
+      rx = drag.rx - (e.clientY - drag.y) * 0.5;
+      cube.style.transform = "rotateX(" + rx.toFixed(1) + "deg) rotateY(" + ry.toFixed(1) + "deg)";
+    });
+    function end(e) {
+      if (!drag) return;
+      drag = null;
+      host.classList.remove("dragging");
+      if (e && e.pointerId !== undefined && host.hasPointerCapture(e.pointerId)) host.releasePointerCapture(e.pointerId);
+    }
+    host.addEventListener("pointerup", end);
+    host.addEventListener("pointercancel", end);
+    host.addEventListener("pointerleave", function (e) {
+      end(e);
+      cube.style.animation = "";
+      cube.style.transform = "";
+    });
   });
 
-  /* ── Canvas 표본 공통 골격 ── */
+  /* ─────────────────────────────────────────
+     Canvas 표본 공통 골격
+     ───────────────────────────────────────── */
   function mount(host, spec) {
     var cv = document.createElement("canvas");
     host.appendChild(cv);
@@ -571,18 +714,46 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         raf = requestAnimationFrame(loop);
       },
       stop: function () { alive = false; cancelAnimationFrame(raf); },
-      still: function () { if (!w) resize(); spec.frame(ctx, w, h, performance.now(), st); },
-      reseed: function () { resize(); api.still(); }
+      still: function (full) {
+        if (!w) resize();
+        var reps = full ? (spec.settle || 1) : 1;
+        for (var k = 0; k < reps; k++) spec.frame(ctx, w, h, performance.now() + k * 16, st);
+      },
+      isRunning: function () { return alive; }
     };
-    new ResizeObserver(function () { var was = alive; api.stop(); resize(); if (was) api.start(); else api.still(); }).observe(host);
-    if (spec.clickable) {
-      host.style.cursor = "pointer";
-      host.addEventListener("click", function () { var was = alive; api.stop(); resize(); was ? api.start() : api.still(); });
+    new ResizeObserver(function () {
+      var was = alive; api.stop(); resize(); was ? api.start() : api.still(true);
+    }).observe(host);
+
+    /* 조작 배선 — spec이 필요한 것만 골라 쓴다 */
+    var dragging = false;
+    function hand(name, e) {
+      if (!spec[name] || !st) return;
+      spec[name](rel(host, e), st, { ctx: ctx, w: w, h: h, dragging: dragging });
+      nudge(api);
     }
+    host.addEventListener("pointermove", function (e) { hand("move", e); });
+    host.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      host.classList.add("dragging");
+      host.setPointerCapture(e.pointerId);
+      hand("down", e);
+    });
+    function up(e) {
+      dragging = false;
+      host.classList.remove("dragging");
+      if (host.hasPointerCapture(e.pointerId)) host.releasePointerCapture(e.pointerId);
+      hand("up", e);
+    }
+    host.addEventListener("pointerup", up);
+    host.addEventListener("pointercancel", up);
+    host.addEventListener("pointerleave", function (e) { dragging = false; hand("leave", e); });
+    host.addEventListener("dblclick", function (e) { hand("dbl", e); });
+
     return api;
   }
 
-  /* 04 — 무리 짓기 */
+  /* ── 04 무리 짓기: 커서를 따라오고, 누르면 흩어진다 ── */
   var boids = {
     init: function (w, h) {
       var n = Math.round(Math.min(120, Math.max(55, w * h / 2400)));
@@ -591,12 +762,18 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         var ang = Math.random() * 6.2832;
         a.push({ x: Math.random() * w, y: Math.random() * h, vx: Math.cos(ang), vy: Math.sin(ang) });
       }
-      return a;
+      return { a: a, mx: -999, my: -999, push: false };
     },
-    frame: function (ctx, w, h, t, a) {
+    move: function (p, s, env) { s.mx = p.x; s.my = p.y; s.push = env.dragging; },
+    down: function (p, s) { s.mx = p.x; s.my = p.y; s.push = true; },
+    up: function (p, s) { s.push = false; },
+    leave: function (p, s) { s.mx = -999; s.my = -999; s.push = false; },
+    frame: function (ctx, w, h, t, s) {
+      var a = s.a;
       ctx.fillStyle = "rgba(14,16,20,.3)";
       ctx.fillRect(0, 0, w, h);
       var R = 32, R2 = R * R, SEP = 15, SEP2 = SEP * SEP;
+      var PR = 130, PR2 = PR * PR;
       for (var i = 0; i < a.length; i++) {
         var b = a[i], cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0, n = 0;
         for (var j = 0; j < a.length; j++) {
@@ -609,6 +786,15 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         if (n) {
           b.vx += ((cx / n - b.x) * 0.0009) + ((ax / n - b.vx) * 0.045) + sx * 5.0;
           b.vy += ((cy / n - b.y) * 0.0009) + ((ay / n - b.vy) * 0.045) + sy * 5.0;
+        }
+        if (s.mx > -900) {
+          var px = s.mx - b.x, py = s.my - b.y, pd2 = px * px + py * py;
+          if (pd2 < PR2 && pd2 > 1) {
+            var pull = s.push ? -0.16 : 0.035;
+            var inv = 1 / Math.sqrt(pd2);
+            b.vx += px * inv * pull;
+            b.vy += py * inv * pull;
+          }
         }
         var sp = Math.hypot(b.vx, b.vy) || 1;
         b.vx = b.vx / sp * 1.25; b.vy = b.vy / sp * 1.25;
@@ -625,34 +811,53 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         ctx.closePath(); ctx.fill();
         ctx.restore();
       }
+      if (s.mx > -900) {
+        ctx.strokeStyle = s.push ? "rgba(255,145,132,.5)" : "rgba(123,136,255,.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(s.mx, s.my, s.push ? 26 : 15, 0, 6.2832);
+        ctx.stroke();
+      }
     }
   };
 
-  /* 06 — 흐름장 */
+  /* ── 06 흐름장: 커서 주위에 소용돌이, 누르면 궤적을 지운다 ── */
   var flow = {
+    settle: 160,
     init: function (w, h) {
       var n = Math.round(Math.min(900, Math.max(280, w * h / 340)));
       var p = new Float32Array(n * 2);
       for (var i = 0; i < n; i++) { p[i * 2] = Math.random() * w; p[i * 2 + 1] = Math.random() * h; }
-      return { p: p, n: n, k: 0 };
+      return { p: p, n: n, mx: -999, my: -999, wipe: false };
     },
+    move: function (pt, s) { s.mx = pt.x; s.my = pt.y; },
+    down: function (pt, s) { s.wipe = true; },
+    leave: function (pt, s) { s.mx = -999; s.my = -999; },
     frame: function (ctx, w, h, t, s) {
+      if (s.wipe) { s.wipe = false; ctx.fillStyle = C.case; ctx.fillRect(0, 0, w, h); }
       ctx.fillStyle = "rgba(14,16,20,.03)";
       ctx.fillRect(0, 0, w, h);
-      var p = s.p;
+      var p = s.p, SW = 150, SW2 = SW * SW;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.strokeStyle = "rgba(233,230,223,.5)";
       for (var i = 0; i < s.n; i++) {
         var x = p[i * 2], y = p[i * 2 + 1];
         var ang = (Math.sin(x * 0.0062) + Math.cos(y * 0.0071) + Math.sin((x + y) * 0.0033)) * 2.4 + t * 0.00022;
+        if (s.mx > -900) {
+          var dx = x - s.mx, dy = y - s.my, d2 = dx * dx + dy * dy;
+          if (d2 < SW2) {
+            /* 커서를 중심으로 접선 방향을 섞으면 소용돌이가 된다 */
+            var f = 1 - Math.sqrt(d2) / SW;
+            ang = ang * (1 - f) + (Math.atan2(dy, dx) + 1.5708) * f;
+          }
+        }
         var nx = x + Math.cos(ang) * 1.15, ny = y + Math.sin(ang) * 1.15;
         if (nx < 0 || nx > w || ny < 0 || ny > h) { nx = Math.random() * w; ny = Math.random() * h; }
         else { ctx.moveTo(x, y); ctx.lineTo(nx, ny); }
         p[i * 2] = nx; p[i * 2 + 1] = ny;
       }
       ctx.stroke();
-      /* 일부만 강조색으로 한 번 더 */
       ctx.beginPath();
       ctx.strokeStyle = "rgba(123,136,255,.5)";
       for (var j = 0; j < s.n; j += 11) {
@@ -663,11 +868,17 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
     }
   };
 
-  /* 07 — 로렌츠 끌개 */
+  /* ── 07 로렌츠 끌개: 끌어서 시점을 돌린다 ── */
   var lorenz = {
-    init: function () {
-      return { x: 0.01, y: 0, z: 0, pts: [], spin: 0 };
+    settle: 260,
+    init: function () { return { x: 0.01, y: 0, z: 0, pts: [], yaw: 0, grab: null, held: false }; },
+    down: function (p, s) { s.grab = { u: p.u, yaw: s.yaw }; s.held = true; },
+    move: function (p, s, env) {
+      if (!env.dragging || !s.grab) return;
+      s.yaw = s.grab.yaw + (p.u - s.grab.u) * 7;
     },
+    up: function (p, s) { s.grab = null; s.held = false; },
+    leave: function (p, s) { s.grab = null; s.held = false; },
     frame: function (ctx, w, h, t, s) {
       var dt = 0.006, sg = 10, rho = 28, beta = 8 / 3;
       for (var k = 0; k < 12; k++) {
@@ -682,8 +893,9 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
 
       ctx.fillStyle = C.case;
       ctx.fillRect(0, 0, w, h);
-      s.spin = t * 0.00013;
-      var cos = Math.cos(s.spin), sin = Math.sin(s.spin);
+      /* 끌고 있는 동안에는 자동 회전을 멈추고 손이 준 각도만 쓴다 */
+      var spin = s.yaw + (s.held ? 0 : t * 0.00013);
+      var cos = Math.cos(spin), sin = Math.sin(spin);
       var sc = Math.min(w, h) / 62;
       var cxp = w / 2, cyp = h / 2 + Math.min(w, h) * 0.30;
       var n = s.pts.length / 3;
@@ -697,13 +909,13 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
       }
       ctx.strokeStyle = "rgba(123,136,255,.55)";
       ctx.stroke();
-      /* 머리쪽 짧은 구간만 밝게 */
+      var head = Math.max(0, n - 150);
       ctx.beginPath();
-      for (var m = Math.max(0, n - 150); m < n; m++) {
+      for (var m = head; m < n; m++) {
         var X2 = s.pts[m * 3], Y2 = s.pts[m * 3 + 1], Z2 = s.pts[m * 3 + 2];
         var rx2 = X2 * cos - Y2 * sin;
         var px2 = cxp + rx2 * sc, py2 = cyp - Z2 * sc;
-        m === Math.max(0, n - 150) ? ctx.moveTo(px2, py2) : ctx.lineTo(px2, py2);
+        m === head ? ctx.moveTo(px2, py2) : ctx.lineTo(px2, py2);
       }
       ctx.strokeStyle = C.coral;
       ctx.lineWidth = 1.4;
@@ -711,15 +923,29 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
     }
   };
 
-  /* 09 — 생명 게임 */
+  /* ── 09 생명 게임: 끌어서 세포를 그리고, 더블클릭하면 새로 뿌린다 ── */
+  function seed(g) { for (var i = 0; i < g.length; i++) g[i] = Math.random() < 0.32 ? 1 : 0; }
   var life = {
-    clickable: true,
     init: function (w, h) {
       var cell = Math.max(5, Math.round(Math.min(w, h) / 34));
       var cols = Math.floor(w / cell), rows = Math.floor(h / cell);
       var g = new Uint8Array(cols * rows);
-      for (var i = 0; i < g.length; i++) g[i] = Math.random() < 0.32 ? 1 : 0;
+      seed(g);
       return { g: g, n: new Uint8Array(cols * rows), cols: cols, rows: rows, cell: cell, tick: 0, age: 0 };
+    },
+    down: function (p, s) { life.paint(p, s); },
+    move: function (p, s, env) { if (env.dragging) life.paint(p, s); },
+    dbl: function (p, s) { seed(s.g); s.age = 0; },
+    paint: function (p, s) {
+      var cx = Math.floor(p.x / s.cell), cy = Math.floor(p.y / s.cell);
+      for (var dy = -1; dy <= 1; dy++) {
+        for (var dx = -1; dx <= 1; dx++) {
+          var x = cx + dx, y = cy + dy;
+          if (x < 0 || y < 0 || x >= s.cols || y >= s.rows) continue;
+          s.g[y * s.cols + x] = 1;
+        }
+      }
+      s.age = 0;
     },
     frame: function (ctx, w, h, t, s) {
       s.tick++;
@@ -740,8 +966,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
         }
         s.g.set(nx);
         s.age++;
-        /* 판이 굳으면 조용히 다시 뿌린다 */
-        if (s.age > 260) { for (var k = 0; k < s.g.length; k++) s.g[k] = Math.random() < 0.32 ? 1 : 0; s.age = 0; }
+        if (s.age > 260) { seed(s.g); s.age = 0; }
       }
       ctx.fillStyle = C.case;
       ctx.fillRect(0, 0, w, h);
@@ -756,52 +981,71 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
     }
   };
 
-  /* 10 — 트뤼셰 타일 */
+  /* ── 10 트뤼셰 타일: 지나가면 타일이 뒤집히고, 누르면 새로 깐다 ── */
+  function drawTile(ctx, s, idx) {
+    var sz = s.size, r = sz / 2;
+    var cx = (idx % s.cols) * sz, cy = Math.floor(idx / s.cols) * sz;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx, cy, sz, sz);
+    ctx.clip();
+    ctx.fillStyle = C.case;
+    ctx.fillRect(cx, cy, sz, sz);
+    ctx.lineWidth = Math.max(1.5, sz * 0.1);
+    ctx.lineCap = "round";
+    ctx.strokeStyle = idx % 7 === 0 ? C.coral : (idx % 3 === 0 ? C.ultra : C.dim);
+    ctx.beginPath();
+    if (s.o[idx]) {
+      ctx.arc(cx, cy, r, 0, Math.PI / 2);
+      ctx.moveTo(cx + sz - r, cy + sz);
+      ctx.arc(cx + sz, cy + sz, r, Math.PI, Math.PI * 1.5);
+    } else {
+      ctx.arc(cx + sz, cy, r, Math.PI / 2, Math.PI);
+      ctx.moveTo(cx, cy + sz - r);
+      ctx.arc(cx, cy + sz, r, Math.PI * 1.5, Math.PI * 2);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
   var truchet = {
-    clickable: true,
+    settle: 100,
     init: function (w, h) {
       var size = Math.max(20, Math.round(Math.min(w, h) / 7));
       var cols = Math.ceil(w / size), rows = Math.ceil(h / size);
       var o = new Uint8Array(cols * rows);
       for (var i = 0; i < o.length; i++) o[i] = Math.random() < 0.5 ? 0 : 1;
-      return { o: o, cols: cols, rows: rows, size: size, drawn: 0, hold: 0, cleared: false };
+      return { o: o, cols: cols, rows: rows, size: size, drawn: 0, hold: 0, cleared: false, last: -1, reroll: false };
     },
+    move: function (p, s, env) {
+      if (s.drawn < s.cols * s.rows) return;
+      var idx = Math.floor(p.y / s.size) * s.cols + Math.floor(p.x / s.size);
+      if (idx === s.last || idx < 0 || idx >= s.o.length) return;
+      s.last = idx;
+      s.o[idx] = s.o[idx] ? 0 : 1;
+      drawTile(env.ctx, s, idx);
+      s.hold = 0;
+    },
+    down: function (p, s) { s.reroll = true; },
+    leave: function (p, s) { s.last = -1; },
     frame: function (ctx, w, h, t, s) {
+      if (s.reroll) {
+        s.reroll = false;
+        for (var r = 0; r < s.o.length; r++) s.o[r] = Math.random() < 0.5 ? 0 : 1;
+        s.drawn = 0; s.hold = 0; s.cleared = false;
+      }
       if (!s.cleared) { ctx.fillStyle = C.case; ctx.fillRect(0, 0, w, h); s.cleared = true; }
       var total = s.cols * s.rows;
       if (s.drawn >= total) {
-        if (++s.hold > 150) {
-          for (var i = 0; i < s.o.length; i++) s.o[i] = Math.random() < 0.5 ? 0 : 1;
-          s.drawn = 0; s.hold = 0; s.cleared = false;
-        }
+        /* 손을 대고 있는 동안에는 다시 깔지 않는다 */
+        if (++s.hold > 400) { s.reroll = true; }
         return;
       }
       var per = Math.max(1, Math.round(total / 90));
-      var sz = s.size, r = sz / 2;
-      ctx.lineWidth = Math.max(1.5, sz * 0.1);
-      ctx.lineCap = "round";
-      for (var k = 0; k < per && s.drawn < total; k++, s.drawn++) {
-        var idx = s.drawn;
-        var cx = (idx % s.cols) * sz, cy = Math.floor(idx / s.cols) * sz;
-        ctx.strokeStyle = idx % 7 === 0 ? C.coral : (idx % 3 === 0 ? C.ultra : C.dim);
-        ctx.beginPath();
-        if (s.o[idx]) {
-          ctx.arc(cx, cy, r, 0, Math.PI / 2);
-          ctx.moveTo(cx + sz - r, cy + sz);
-          ctx.arc(cx + sz, cy + sz, r, Math.PI, Math.PI * 1.5);
-        } else {
-          ctx.arc(cx + sz, cy, r, Math.PI / 2, Math.PI);
-          ctx.moveTo(cx, cy + sz - r);
-          ctx.arc(cx, cy + sz, r, Math.PI * 1.5, Math.PI * 2);
-        }
-        ctx.stroke();
-      }
+      for (var k = 0; k < per && s.drawn < total; k++, s.drawn++) drawTile(ctx, s, s.drawn);
     }
   };
 
   var SPECS = { boids: boids, flow: flow, lorenz: lorenz, life: life, truchet: truchet };
-  var running = [];
-  var byNode = new Map();
 
   document.querySelectorAll("[data-demo]").forEach(function (host) {
     var api = mount(host, SPECS[host.dataset.demo]);
@@ -816,7 +1060,7 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
       var api = byNode.get(v);
       if (e.isIntersecting) {
         v.classList.add("seen", "live");
-        if (api) api.start();
+        if (api) { api.start(); if (!api.isRunning()) api.still(true); }
       } else {
         v.classList.remove("live");
         if (api) api.stop();
@@ -846,11 +1090,11 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
     });
   });
 
-  /* ── 움직임을 원치 않으면 정지 상태로 연다 ── */
+  /* ── 움직임을 원치 않으면 정지 상태로 연다. 조작은 그래도 살아 있다 ── */
   if (reduce) {
     setMotion(false);
     cards.forEach(function (c) { c.classList.add("seen"); });
-    requestAnimationFrame(function () { running.forEach(function (r) { r.still(); }); });
+    requestAnimationFrame(function () { running.forEach(function (r) { r.still(true); }); });
   }
 })();
 </script>
