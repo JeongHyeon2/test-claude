@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>활자 견본실</title>
-<meta name="description" content="한글과 라틴을 나란히 놓고 크기·자간·행간·굵기를 직접 움직여 보는 활자 견본지.">
+<title>움직이는 표본</title>
+<meta name="description" content="CSS·SVG 필터·Canvas로 만든 열 가지 움직임을, 원리와 함께 표본처럼 늘어놓은 수집장.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 /* ─────────────────────────────────────────────
-   토큰 — 기본은 라이트(포슬린 지면). 다크는 토큰만 다시 정의한다.
+   토큰 — 활자 견본실과 같은 체계를 잇는다.
+   단, 표본 상자 안쪽(--case-*)은 테마와 무관하게 늘 잉크색이다.
    ───────────────────────────────────────────── */
 :root {
   color-scheme: light dark;
@@ -27,42 +28,33 @@
   --coral:      #ff7a6b;
   --sel:        #d9dcfb;
 
+  /* 상자 안 — 고정 */
+  --case:       #0e1014;
+  --case-line:  #2f3746;
+  --case-bone:  #e9e6df;
+  --case-ultra: #7b88ff;
+  --case-coral: #ff9184;
+  --case-dim:   #6a7183;
+
   --f-display: "Bodoni Moda", "Times New Roman", serif;
   --f-body:    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* 8px 기반 간격 스케일 */
-  --s-1: .5rem;  --s-2: 1rem;   --s-3: 1.5rem;
-  --s-4: 2.5rem; --s-5: 4rem;   --s-6: 7rem;
-
+  --s-1: .5rem; --s-2: 1rem; --s-3: 1.5rem; --s-4: 2.5rem; --s-5: 4rem; --s-6: 7rem;
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --measure: 34rem;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper:     #0e1014;
-    --paper-2:   #161a21;
-    --ink:       #e9e6df;
-    --ink-soft:  #b4b8c2;
-    --muted:     #7a8090;
-    --rule:      #2a303b;
-    --rule-soft: #1d222a;
-    --ultra:     #7b88ff;
-    --coral:     #ff9184;
-    --sel:       #29306b;
+    --paper: #0e1014; --paper-2: #161a21; --ink: #e9e6df; --ink-soft: #b4b8c2;
+    --muted: #7a8090; --rule: #2a303b; --rule-soft: #1d222a;
+    --ultra: #7b88ff; --coral: #ff9184; --sel: #29306b;
   }
 }
 :root[data-theme="dark"] {
-  --paper:     #0e1014;
-  --paper-2:   #161a21;
-  --ink:       #e9e6df;
-  --ink-soft:  #b4b8c2;
-  --muted:     #7a8090;
-  --rule:      #2a303b;
-  --rule-soft: #1d222a;
-  --ultra:     #7b88ff;
-  --coral:     #ff9184;
-  --sel:       #29306b;
+  --paper: #0e1014; --paper-2: #161a21; --ink: #e9e6df; --ink-soft: #b4b8c2;
+  --muted: #7a8090; --rule: #2a303b; --rule-soft: #1d222a;
+  --ultra: #7b88ff; --coral: #ff9184; --sel: #29306b;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -76,517 +68,412 @@ body {
   font-family: var(--f-body);
   font-size: 16px;
   line-height: 1.7;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
   word-break: keep-all;
   overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
 }
 ::selection { background: var(--sel); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--ultra); outline-offset: 3px; border-radius: 2px; }
 
-:focus-visible {
-  outline: 2px solid var(--ultra);
-  outline-offset: 3px;
-  border-radius: 2px;
-}
-
-/* 히어로 뒤 망점 필드 */
-#field {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ── 공통 레이아웃: 왼쪽 여백에 사양, 오른쪽에 본문 ── */
-.sheet {
-  position: relative;
-  z-index: 1;
-  max-width: 84rem;
-  margin: 0 auto;
-  padding-inline: var(--gutter);
-}
-.band {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--s-3);
-  padding-block: var(--s-6);
-  border-top: 1px solid var(--rule);
-}
-@media (min-width: 62rem) {
-  .band { grid-template-columns: 13rem minmax(0, 1fr); gap: var(--s-5); }
-}
-@media (max-width: 61.99rem) {
-  .band > .margin-note { order: 2; padding-top: var(--s-2); border-top: 1px solid var(--rule); }
-  .band > :not(.margin-note) { order: 1; }
-}
-
-/* 여백 사양 표기 */
-.margin-note {
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  line-height: 1.9;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.margin-note b {
-  display: block;
-  font-weight: 500;
-  color: var(--ink);
-  letter-spacing: .12em;
-}
-.margin-note dl { margin: var(--s-2) 0 0; display: grid; gap: .35rem; }
-.margin-note .row { display: flex; justify-content: space-between; gap: var(--s-2); border-bottom: 1px dotted var(--rule); }
-.margin-note .row span:last-child { color: var(--ink-soft); text-transform: none; }
-
-h2 {
-  margin: 0 0 var(--s-3);
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-size: clamp(1.75rem, 3.4vw, 3rem);
-  line-height: 1.1;
-  letter-spacing: -.015em;
-  text-wrap: balance;
-}
-h2 em {
-  font-family: var(--f-body);
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  color: var(--ultra);
-}
-
-p { margin: 0 0 var(--s-2); max-width: var(--measure); color: var(--ink-soft); }
-p.tight { margin-bottom: 0; }
+.sheet { max-width: 84rem; margin: 0 auto; padding-inline: var(--gutter); }
 
 /* ─────────── 상단 바 ─────────── */
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-2);
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
   padding: .875rem var(--gutter);
-  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  background: color-mix(in srgb, var(--paper) 93%, transparent);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid transparent;
   transition: border-color .3s ease;
 }
 .topbar[data-stuck="true"] { border-bottom-color: var(--rule); }
-.mark {
-  font-family: var(--f-display);
-  font-size: 1.0625rem;
-  letter-spacing: .01em;
-}
+.mark { font-family: var(--f-display); font-size: 1.0625rem; }
 .mark i { font-style: italic; color: var(--coral); }
-.topbar nav {
-  display: flex;
-  gap: var(--s-3);
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+.topbar .right { display: flex; align-items: center; gap: var(--s-3); }
+.topbar a {
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s;
 }
-.topbar nav a { color: var(--muted); text-decoration: none; transition: color .2s; }
-.topbar nav a:hover { color: var(--ink); }
-@media (max-width: 46rem) { .topbar nav { display: none; } }
+.topbar a:hover { color: var(--ink); }
 
-/* ─────────── 히어로 ─────────── */
-.hero { padding-block: clamp(4rem, 13vh, 8rem) var(--s-6); border-top: 0; }
+.motion-toggle {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--rule); border-radius: 999px;
+  padding: .35rem .75rem; cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.motion-toggle:hover { border-color: var(--ultra); color: var(--ultra); }
+.motion-toggle .dot {
+  width: .4rem; height: .4rem; border-radius: 50%;
+  background: var(--coral); transition: background .2s;
+}
+body[data-motion="on"] .motion-toggle .dot { background: var(--ultra); }
+.motion-toggle .lbl-on { display: none; }
+body[data-motion="on"] .motion-toggle .lbl-on { display: inline; }
+body[data-motion="on"] .motion-toggle .lbl-off { display: none; }
+
+/* ─────────── 표제 ─────────── */
+.masthead { padding-block: clamp(3rem, 9vh, 5.5rem) var(--s-4); }
 .eyebrow {
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin: 0 0 var(--s-3);
-  display: flex;
-  align-items: center;
-  gap: .75rem;
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); margin: 0 0 var(--s-3);
+  display: flex; align-items: center; gap: .75rem;
 }
-.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); max-width: 8rem; }
-
-.display {
+.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); max-width: 10rem; }
+.masthead h1 {
   margin: 0;
-  font-family: var(--f-body);
   font-weight: 800;
-  font-size: clamp(2.75rem, 8.6vw, 7rem);
-  line-height: 1.02;
-  letter-spacing: -.035em;
-  text-wrap: balance;
+  font-size: clamp(2.5rem, 7.6vw, 6rem);
+  line-height: 1.04; letter-spacing: -.035em; text-wrap: balance;
 }
-.display .line { display: block; overflow: hidden; }
-.display .line > span { display: block; }
-.display em {
-  font-family: var(--f-display);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -.01em;
-  color: var(--ultra);
-  padding-right: .06em;
+.masthead h1 em {
+  font-style: normal; font-weight: 800;
+  letter-spacing: -.035em; color: var(--ultra);
 }
-.hero .lede {
-  margin-top: var(--s-4);
-  font-size: 1.0625rem;
-  max-width: 30rem;
-}
+.masthead p { margin: var(--s-3) 0 0; max-width: 32rem; color: var(--ink-soft); }
 
-.hero-meta {
-  margin-top: var(--s-5);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2) var(--s-4);
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-top: var(--s-2);
-  border-top: 1px solid var(--rule);
+/* ─────────── 기법 필터 ─────────── */
+.filters {
+  position: sticky; top: 3.5rem; z-index: 20;
+  display: flex; flex-wrap: wrap; gap: .4rem;
+  padding: var(--s-2) 0;
+  background: color-mix(in srgb, var(--paper) 95%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s-4);
 }
-.hero-meta b { color: var(--ink); font-weight: 500; }
+.filters button {
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--rule); padding: .4rem .8rem; cursor: pointer;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.filters button:hover { color: var(--ink); border-color: var(--ink-soft); }
+.filters button[aria-pressed="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+.filters .count { margin-left: auto; align-self: center; font-family: var(--f-mono); font-size: .6875rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-/* ─────────── 견본 조작대 ─────────── */
-.stage {
-  --sz: 68;
-  --tr: -0.02;
-  --lh: 1.15;
-  --wt: 800;
+/* ─────────── 표본 격자 ─────────── */
+.cabinet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: var(--s-3);
+  padding-bottom: var(--s-6);
+}
+.vitrine {
+  margin: 0;
   border: 1px solid var(--rule);
   background: var(--paper-2);
-  padding: clamp(1.25rem, 3vw, 2.25rem);
+  display: flex; flex-direction: column;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1), border-color .25s;
+}
+.vitrine.seen { opacity: 1; transform: none; }
+.vitrine:hover { border-color: var(--ink-soft); }
+.vitrine[hidden] { display: none; }
+
+.case {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--case);
   overflow: hidden;
+  isolation: isolate;
 }
-.stage-out {
-  font-family: var(--f-body);
-  font-size: calc(var(--sz) * 1px);
-  letter-spacing: calc(var(--tr) * 1em);
-  line-height: var(--lh);
-  font-weight: var(--wt);
-  color: var(--ink);
-  margin: 0;
-  max-width: none;
-}
-.stage-out .latin {
-  font-family: var(--f-display);
-  font-style: italic;
-  font-weight: 500;
-  color: var(--coral);
-}
-.stage-rule { height: 1px; background: var(--rule); margin: clamp(1.25rem, 3vw, 2rem) 0; }
+.case canvas { display: block; width: 100%; height: 100%; }
 
-.controls { display: grid; gap: var(--s-3); }
-@media (min-width: 40rem) { .controls { grid-template-columns: 1fr 1fr; gap: var(--s-3) var(--s-4); } }
-
-.ctrl { display: grid; gap: .4rem; }
-.ctrl-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.ctrl-head output {
-  color: var(--ultra);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: .02em;
-}
-
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 1.25rem;
-  background: transparent;
-  cursor: ew-resize;
-  margin: 0;
-}
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 1px;
-  background: var(--rule);
-}
-input[type="range"]::-moz-range-track {
-  height: 1px;
-  background: var(--rule);
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: .75rem;
-  height: .75rem;
-  margin-top: -.375rem;
-  background: var(--ultra);
-  border: 0;
-  border-radius: 50%;
-  transition: transform .15s ease;
-}
-input[type="range"]::-moz-range-thumb {
-  width: .75rem;
-  height: .75rem;
-  background: var(--ultra);
-  border: 0;
-  border-radius: 50%;
-}
-input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.35); }
-input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.35); }
-
-/* ─────────── 크기 사다리 ─────────── */
-.ramp { display: grid; gap: 0; border-top: 1px solid var(--rule-soft); }
-.step {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--s-2);
-  padding: .55rem 0;
-  border-bottom: 1px solid var(--rule-soft);
-}
-.step code {
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: .04em;
-}
-.step .sample {
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ─────────── 색 ─────────── */
-.swatches { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-@media (min-width: 34rem) { .swatches { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 58rem) { .swatches { grid-template-columns: repeat(4, 1fr); } }
-.swatch {
-  background: var(--paper-2);
+.plate {
   padding: var(--s-2);
-  display: grid;
-  gap: .75rem;
-  align-content: start;
+  display: grid; gap: .45rem;
+  border-top: 1px solid var(--rule);
 }
-.chip { height: 4.5rem; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
-.swatch dl { margin: 0; font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .04em; display: grid; gap: .1rem; }
-.swatch dt { color: var(--ink); text-transform: uppercase; letter-spacing: .12em; }
-.swatch dd { margin: 0; color: var(--muted); text-transform: uppercase; }
-
-/* ─────────── 스크롤 등장 ─────────── */
-.reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-.reveal.in { opacity: 1; transform: none; }
-.stagger > * { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
-.stagger.in > * { opacity: 1; transform: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal, .stagger > * { opacity: 1; transform: none; transition: none; }
-  .display .line > span { transform: none !important; }
+.plate .head { display: flex; align-items: baseline; gap: .6rem; }
+.plate .no {
+  font-family: var(--f-mono); font-size: .6875rem; color: var(--muted);
+  font-variant-numeric: tabular-nums; letter-spacing: .06em;
+}
+.plate .name { font-weight: 700; letter-spacing: -.01em; }
+.plate .name i { font-family: var(--f-display); font-style: italic; font-weight: 500; color: var(--muted); margin-left: .35rem; }
+.plate .tech {
+  margin-left: auto; flex: none;
+  font-family: var(--f-mono); font-size: .625rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ultra); border: 1px solid color-mix(in srgb, var(--ultra) 35%, transparent);
+  padding: .1rem .4rem;
+}
+.plate .note { margin: 0; font-size: .875rem; line-height: 1.6; color: var(--ink-soft); }
+.plate .hint {
+  margin: 0; font-family: var(--f-mono); font-size: .625rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--coral);
 }
 
-/* 초기 로드 시 한 줄씩 올라오는 연출 */
-.display .line > span { transform: translateY(105%); transition: transform 1s cubic-bezier(.16,.84,.28,1); transition-delay: var(--d, 0ms); }
-.loaded .display .line > span { transform: none; }
+/* ─────────── 01 진자 파동 ─────────── */
+.pendulums { position: absolute; inset: 0; display: flex; justify-content: center; gap: 3.2%; padding-top: 6%; }
+.pend {
+  width: 1px; height: 66%;
+  background: color-mix(in srgb, var(--case-line) 55%, transparent);
+  transform-origin: top center;
+  animation: swing var(--t, 1s) cubic-bezier(.45,0,.55,1) infinite alternate;
+  position: relative;
+}
+.pend::after {
+  content: ""; position: absolute; bottom: -.34rem; left: 50%;
+  width: .68rem; height: .68rem; margin-left: -.34rem; border-radius: 50%;
+  background: var(--case-bone);
+}
+.pend:nth-child(3n)::after { background: var(--case-ultra); }
+.pend:nth-child(5n)::after { background: var(--case-coral); }
+@keyframes swing { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+
+/* ─────────── 02 메타볼 ─────────── */
+.goo { position: absolute; inset: 0; filter: url(#gooey); }
+.goo b {
+  position: absolute; display: block; border-radius: 50%;
+  background: var(--case-ultra);
+  will-change: transform;
+}
+.goo b:nth-child(1) { width: 23%; aspect-ratio: 1; left: 12%; top: 30%; animation: drift1 9s ease-in-out infinite; }
+.goo b:nth-child(2) { width: 20%; aspect-ratio: 1; left: 44%; top: 18%; background: var(--case-coral); animation: drift2 11s ease-in-out infinite; }
+.goo b:nth-child(3) { width: 26%; aspect-ratio: 1; left: 56%; top: 42%; animation: drift3 8s ease-in-out infinite; }
+.goo b:nth-child(4) { width: 16%; aspect-ratio: 1; left: 32%; top: 58%; background: var(--case-coral); animation: drift4 13s ease-in-out infinite; }
+.goo b:nth-child(5) { width: 22%; aspect-ratio: 1; left: 20%; top: 12%; animation: drift5 10s ease-in-out infinite; }
+@keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(90%, 22%); } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-60%, 70%); } }
+@keyframes drift3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-80%,-45%); } }
+@keyframes drift4 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(75%,-60%); } }
+@keyframes drift5 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(120%, 130%); } }
+
+/* ─────────── 03 모아레 ─────────── */
+.moire { position: absolute; inset: -25%; }
+.moire span {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, var(--case-bone) .9px, transparent 1.4px);
+  background-size: 11px 11px;
+  opacity: .5;
+}
+.moire span:last-child { animation: turn 26s linear infinite; opacity: .45; }
+@keyframes turn { to { transform: rotate(360deg); } }
+
+/* ─────────── 04 물결 격자 ─────────── */
+.ripple { position: absolute; inset: 0; display: grid; place-content: center; }
+.ripple .row { display: flex; }
+.ripple i {
+  display: block; width: .34rem; height: .34rem; margin: .26rem;
+  border-radius: 50%; background: var(--case-bone);
+  animation: pulse 2.6s ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(.28); opacity: .28; }
+  50%      { transform: scale(1.25); opacity: 1; }
+}
+
+/* ─────────── 05 정육면체 ─────────── */
+.stagecube { position: absolute; inset: 0; display: grid; place-items: center; perspective: 700px; }
+.cube {
+  width: 34%; aspect-ratio: 1;
+  position: relative; transform-style: preserve-3d;
+  animation: tumble 16s linear infinite;
+}
+.cube span {
+  position: absolute; inset: 0;
+  border: 1px solid var(--case-ultra);
+  background: color-mix(in srgb, var(--case-ultra) 9%, transparent);
+}
+.cube span:nth-child(1) { transform: translateZ(calc(var(--half) * 1px)); }
+.cube span:nth-child(2) { transform: rotateY(180deg) translateZ(calc(var(--half) * 1px)); }
+.cube span:nth-child(3) { transform: rotateY(90deg)  translateZ(calc(var(--half) * 1px)); border-color: var(--case-coral); background: color-mix(in srgb, var(--case-coral) 9%, transparent); }
+.cube span:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--half) * 1px)); border-color: var(--case-coral); background: color-mix(in srgb, var(--case-coral) 9%, transparent); }
+.cube span:nth-child(5) { transform: rotateX(90deg)  translateZ(calc(var(--half) * 1px)); }
+.cube span:nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--half) * 1px)); }
+@keyframes tumble { to { transform: rotateX(360deg) rotateY(720deg); } }
+
+/* 정지 상태 */
+body[data-motion="off"] .case *, body[data-motion="off"] .case { animation-play-state: paused !important; }
+.vitrine:not(.live) .case * { animation-play-state: paused; }
 
 /* ─────────── 마무리 ─────────── */
-.closing { padding-block: var(--s-6) var(--s-5); border-top: 1px solid var(--rule); }
-.closing h2 { max-width: 22ch; }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .6rem;
-  margin-top: var(--s-2);
-  padding: .8rem 1.4rem;
-  background: var(--ink);
-  color: var(--paper);
-  text-decoration: none;
-  font-family: var(--f-mono);
-  font-size: .75rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  transition: background .2s ease, color .2s ease;
+.colophon {
+  border-top: 1px solid var(--rule);
+  padding-block: var(--s-5);
+  display: grid; gap: var(--s-3);
 }
-.btn:hover { background: var(--ultra); color: #fff; }
-.btn span { transition: transform .25s ease; }
-.btn:hover span { transform: translateX(4px); }
+@media (min-width: 52rem) { .colophon { grid-template-columns: 1fr 1fr; gap: var(--s-5); } }
+.colophon h2 {
+  margin: 0 0 var(--s-2);
+  font-family: var(--f-display); font-weight: 500;
+  font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.15; letter-spacing: -.015em;
+}
+.colophon p { margin: 0 0 var(--s-2); color: var(--ink-soft); max-width: var(--measure); }
+.tally { font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .04em; display: grid; gap: .35rem; align-content: start; }
+.tally .row { display: flex; justify-content: space-between; gap: var(--s-2); border-bottom: 1px dotted var(--rule); text-transform: uppercase; color: var(--muted); }
+.tally .row span:last-child { color: var(--ink); text-transform: none; }
 
 footer {
   border-top: 1px solid var(--rule);
   padding: var(--s-3) 0 var(--s-5);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2) var(--s-4);
-  justify-content: space-between;
-  font-family: var(--f-mono);
-  font-size: .6875rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); justify-content: space-between;
+  font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
 footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
 footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vitrine { opacity: 1; transform: none; transition: none; }
+}
 </style>
 </head>
-<body>
-<canvas id="field" aria-hidden="true"></canvas>
+<body data-motion="on">
+
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <filter id="gooey">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur"/>
+    <feColorMatrix in="blur" type="matrix"
+      values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+  </filter>
+</svg>
 
 <header class="topbar" id="topbar">
-  <div class="mark">활자 견본실 <i>Specimen</i></div>
-  <nav>
-    <a href="#specimen">견본</a>
-    <a href="#scale">사다리</a>
-    <a href="#palette">색</a>
-  </nav>
+  <div class="mark">움직이는 표본 <i>In Motion</i></div>
+  <div class="right">
+    <a href="./specimen.html">활자 견본실</a>
+    <button class="motion-toggle" id="motionToggle" type="button" aria-pressed="true">
+      <span class="dot"></span>
+      <span class="lbl-on">Motion On</span>
+      <span class="lbl-off">Motion Off</span>
+    </button>
+  </div>
 </header>
 
 <div class="sheet">
 
-  <section class="hero band">
-    <div class="margin-note">
-      <b>Colophon</b>
-      <dl>
-        <div class="row"><span>Display</span><span>Bodoni Moda</span></div>
-        <div class="row"><span>Hangul</span><span>Pretendard</span></div>
-        <div class="row"><span>Data</span><span>IBM Plex Mono</span></div>
-        <div class="row"><span>Grid</span><span>13rem + 1fr</span></div>
-      </dl>
-    </div>
+  <section class="masthead">
+    <p class="eyebrow">표본 No. 02 — 열 가지 움직임</p>
+    <h1>움직임은 대개<br><em>규칙</em> 하나에서 나온다</h1>
+    <p>흔들리는 진자, 뭉치는 방울, 무리 짓는 점. 화려해 보이는 화면일수록 뒤에 있는 규칙은 짧습니다. 열 개의 표본을 기법별로 늘어놓고, 각각이 무엇으로 움직이는지 명판에 적었습니다.</p>
+  </section>
+
+  <div class="filters" role="group" aria-label="기법으로 거르기">
+    <button type="button" data-filter="all" aria-pressed="true">전체</button>
+    <button type="button" data-filter="css" aria-pressed="false">CSS</button>
+    <button type="button" data-filter="svg" aria-pressed="false">SVG 필터</button>
+    <button type="button" data-filter="canvas" aria-pressed="false">Canvas</button>
+    <span class="count" id="count">10 / 10</span>
+  </div>
+
+  <div class="cabinet" id="cabinet">
+
+    <figure class="vitrine" data-tech="css">
+      <div class="case"><div class="pendulums" data-build="pendulums"></div></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">01</span><span class="name">진자 파동 <i>Pendulum Wave</i></span><span class="tech">CSS</span></div>
+        <p class="note">길이가 조금씩 다른 진자 열여섯 개. 주기가 어긋나면서 뱀처럼 흐르다가 어느 순간 다시 한 줄로 모입니다.</p>
+        <p class="hint">animation-duration만 다르게 준 것</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="svg">
+      <div class="case"><div class="goo"><b></b><b></b><b></b><b></b><b></b></div></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">02</span><span class="name">방울 뭉치기 <i>Metaball</i></span><span class="tech">SVG 필터</span></div>
+        <p class="note">그냥 원 다섯 개인데 가까워지면 액체처럼 들러붙습니다. 흐리게 만든 뒤 알파 대비를 극단으로 올리면 경계가 하나로 이어집니다.</p>
+        <p class="hint">feGaussianBlur → feColorMatrix</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="css">
+      <div class="case"><div class="moire"><span></span><span></span></div></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">03</span><span class="name">모아레 <i>Moiré</i></span><span class="tech">CSS</span></div>
+        <p class="note">같은 점 격자 두 장을 겹치고 한 장만 천천히 돌립니다. 어디에도 그리지 않은 커다란 무늬가 저절로 나타납니다.</p>
+        <p class="hint">background-size 11px 격자 두 겹</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="canvas">
+      <div class="case" data-demo="boids"></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">04</span><span class="name">무리 짓기 <i>Boids</i></span><span class="tech">Canvas</span></div>
+        <p class="note">우두머리가 없습니다. 부딪히지 않기, 이웃과 방향 맞추기, 무리 쪽으로 붙기 — 규칙 세 개뿐인데 새 떼처럼 움직입니다.</p>
+        <p class="hint">Separation · Alignment · Cohesion</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="css">
+      <div class="case"><div class="ripple" data-build="ripple"></div></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">05</span><span class="name">물결 격자 <i>Ripple Grid</i></span><span class="tech">CSS</span></div>
+        <p class="note">점 196개가 전부 같은 애니메이션을 씁니다. 가운데에서 먼 점일수록 시작을 늦췄을 뿐인데 파문이 퍼져 나갑니다.</p>
+        <p class="hint">animation-delay = 중심까지의 거리</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="canvas">
+      <div class="case" data-demo="flow"></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">06</span><span class="name">흐름장 <i>Flow Field</i></span><span class="tech">Canvas</span></div>
+        <p class="note">화면 전체에 보이지 않는 방향이 깔려 있고, 입자 수백 개가 거기에 몸을 맡깁니다. 지우지 않고 옅게 덧칠해서 궤적이 남습니다.</p>
+        <p class="hint">각 좌표의 각도 = sin·cos 조합</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="canvas">
+      <div class="case" data-demo="lorenz"></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">07</span><span class="name">로렌츠 끌개 <i>Lorenz</i></span><span class="tech">Canvas</span></div>
+        <p class="note">날씨를 단순화하다 나온 식 세 줄. 절대 같은 자리를 두 번 지나지 않으면서도 영원히 나비 모양 안에 갇혀 있습니다.</p>
+        <p class="hint">σ=10 · ρ=28 · β=8/3</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="css">
+      <div class="case"><div class="stagecube"><div class="cube"><span></span><span></span><span></span><span></span><span></span><span></span></div></div></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">08</span><span class="name">굴러가는 정육면체 <i>Tumbling Cube</i></span><span class="tech">CSS</span></div>
+        <p class="note">면 여섯 장을 각자 회전시켜 세운 진짜 3D. 라이브러리 없이 transform-style 한 줄이면 브라우저가 원근을 계산해 줍니다.</p>
+        <p class="hint">transform-style: preserve-3d</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="canvas">
+      <div class="case" data-demo="life"></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">09</span><span class="name">생명 게임 <i>Game of Life</i></span><span class="tech">Canvas</span></div>
+        <p class="note">이웃이 셋이면 태어나고, 둘·셋이 아니면 죽습니다. 그것만으로 기어다니는 것과 반복하는 것이 생겨납니다. 눌러서 다시 뿌려 보세요.</p>
+        <p class="hint">클릭 → 새로 파종</p>
+      </figcaption>
+    </figure>
+
+    <figure class="vitrine" data-tech="canvas">
+      <div class="case" data-demo="truchet"></div>
+      <figcaption class="plate">
+        <div class="head"><span class="no">10</span><span class="name">트뤼셰 타일 <i>Truchet</i></span><span class="tech">Canvas</span></div>
+        <p class="note">사분원이 그려진 타일 한 종류를 아무 방향으로나 깝니다. 타일은 하나뿐인데 미로 같은 길이 끝없이 이어집니다. 눌러서 다시 깔아 보세요.</p>
+        <p class="hint">클릭 → 새로 깔기</p>
+      </figcaption>
+    </figure>
+
+  </div>
+
+  <section class="colophon">
     <div>
-      <p class="eyebrow">견본지 No. 01 — 한글 · 라틴 혼식</p>
-      <h1 class="display">
-        <span class="line"><span style="--d:60ms">화면의 첫인상은</span></span>
-        <span class="line"><span style="--d:150ms"><em>Typography</em>가</span></span>
-        <span class="line"><span style="--d:240ms">결정한다</span></span>
-      </h1>
-      <p class="lede">이 페이지는 스스로가 하나의 견본지입니다. 아래에서 크기·자간·행간·굵기를 직접 움직여 보세요. 값 하나가 문장의 인상을 어디까지 바꾸는지 눈으로 확인할 수 있습니다.</p>
-      <div class="hero-meta">
-        <span>조판 <b>12 / 8px Scale</b></span>
-        <span>본문 폭 <b>34rem</b></span>
-        <span>테마 <b>Light · Dark</b></span>
-      </div>
+      <h2>기법을 고르는 기준</h2>
+      <p>CSS로 되는 것은 CSS로 둡니다. 진자·격자·정육면체는 요소마다 값 하나만 다르게 준 게 전부이고, 브라우저가 알아서 합성 스레드에서 돌립니다. Canvas는 매 프레임 상태가 바뀌어야 할 때 — 무리 짓기나 생명 게임처럼 이전 프레임을 알아야 다음이 나오는 것들에만 씁니다.</p>
+      <p>화면 밖으로 나간 표본은 <code>IntersectionObserver</code>로 멈춥니다. 열 개가 동시에 도는 일은 없습니다.</p>
     </div>
-  </section>
-
-  <section class="band" id="specimen">
-    <div class="margin-note reveal">
-      <b>Fig. 01</b>
-      <dl>
-        <div class="row"><span>Size</span><span id="m-sz">68 px</span></div>
-        <div class="row"><span>Tracking</span><span id="m-tr">-0.020 em</span></div>
-        <div class="row"><span>Leading</span><span id="m-lh">1.15</span></div>
-        <div class="row"><span>Weight</span><span id="m-wt">800</span></div>
-      </dl>
-    </div>
-    <div class="reveal">
-      <h2>값을 만지면 <em>인상</em>이 움직인다</h2>
-      <p>같은 문장도 자간 0.02em 차이로 다르게 읽힙니다. 슬라이더를 끌어 보세요 — 여백의 사양표가 실시간으로 따라옵니다.</p>
-      <div class="stage" id="stage">
-        <p class="stage-out" id="stageOut">글자 사이의 <span class="latin">breathing room</span> 하나가 문장의 온도를 바꾼다</p>
-        <div class="stage-rule"></div>
-        <div class="controls">
-          <label class="ctrl">
-            <span class="ctrl-head">크기 Size <output id="o-sz">68px</output></span>
-            <input type="range" id="r-sz" min="20" max="104" step="1" value="68">
-          </label>
-          <label class="ctrl">
-            <span class="ctrl-head">자간 Tracking <output id="o-tr">-0.020em</output></span>
-            <input type="range" id="r-tr" min="-60" max="120" step="1" value="-20">
-          </label>
-          <label class="ctrl">
-            <span class="ctrl-head">행간 Leading <output id="o-lh">1.15</output></span>
-            <input type="range" id="r-lh" min="90" max="220" step="1" value="115">
-          </label>
-          <label class="ctrl">
-            <span class="ctrl-head">굵기 Weight <output id="o-wt">800</output></span>
-            <input type="range" id="r-wt" min="200" max="900" step="50" value="800">
-          </label>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="scale">
-    <div class="margin-note reveal">
-      <b>Fig. 02</b>
-      <dl>
-        <div class="row"><span>Ratio</span><span>1.333 · 4단</span></div>
-        <div class="row"><span>Steps</span><span>7</span></div>
-        <div class="row"><span>Base</span><span>16 px</span></div>
-      </dl>
-    </div>
-    <div>
-      <h2 class="reveal">하나의 <em>사다리</em>를 정하고, 벗어나지 않는다</h2>
-      <p class="reveal">임의의 크기를 그때그때 고르면 화면은 반드시 흐트러집니다. 4도음(1.333)으로 7단을 만들고 그 안에서만 고릅니다.</p>
-      <div class="ramp stagger" id="ramp">
-        <div class="step" style="--d:0ms"><code>76 px</code><span class="sample" style="font-size:clamp(2rem,5vw,3.5rem)">견본 Specimen</span></div>
-        <div class="step" style="--d:60ms"><code>57 px</code><span class="sample" style="font-size:clamp(1.75rem,4vw,2.6rem)">견본 Specimen</span></div>
-        <div class="step" style="--d:120ms"><code>43 px</code><span class="sample" style="font-size:clamp(1.5rem,3vw,2rem)">견본 Specimen</span></div>
-        <div class="step" style="--d:180ms"><code>32 px</code><span class="sample" style="font-size:1.5rem">견본 Specimen</span></div>
-        <div class="step" style="--d:240ms"><code>24 px</code><span class="sample" style="font-size:1.125rem">견본 Specimen</span></div>
-        <div class="step" style="--d:300ms"><code>18 px</code><span class="sample" style="font-size:1rem">견본 Specimen</span></div>
-        <div class="step" style="--d:360ms"><code>16 px</code><span class="sample" style="font-size:.875rem">견본 Specimen</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="palette">
-    <div class="margin-note reveal">
-      <b>Fig. 03</b>
-      <dl>
-        <div class="row"><span>Scheme</span><span>Duotone</span></div>
-        <div class="row"><span>Ground</span><span>Porcelain</span></div>
-        <div class="row"><span>Accents</span><span>2</span></div>
-      </dl>
-    </div>
-    <div>
-      <h2 class="reveal">강조는 <em>한 곳</em>에만 쓴다</h2>
-      <p class="reveal">바탕은 순수한 회색 대신 푸른 기가 도는 포슬린. 강조는 울트라마린과 코랄 둘뿐이고, 나머지는 전부 잉크의 농도 차이로 해결합니다.</p>
-      <div class="swatches stagger" id="swatches">
-        <div class="swatch" style="--d:0ms">
-          <div class="chip" style="background:var(--paper)"></div>
-          <dl><dt>Porcelain</dt><dd>바탕 · #eef0f3</dd></dl>
-        </div>
-        <div class="swatch" style="--d:70ms">
-          <div class="chip" style="background:var(--ink)"></div>
-          <dl><dt>Ink</dt><dd>본문 · #111318</dd></dl>
-        </div>
-        <div class="swatch" style="--d:140ms">
-          <div class="chip" style="background:var(--ultra)"></div>
-          <dl><dt>Ultramarine</dt><dd>강조 · #2b3ce8</dd></dl>
-        </div>
-        <div class="swatch" style="--d:210ms">
-          <div class="chip" style="background:var(--coral)"></div>
-          <dl><dt>Coral</dt><dd>보조 · #ff7a6b</dd></dl>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="closing band">
-    <div class="margin-note reveal">
-      <b>Fin.</b>
-      <dl>
-        <div class="row"><span>Deploy</span><span>GitHub Actions</span></div>
-        <div class="row"><span>Deps</span><span>0</span></div>
-        <div class="row"><span>Motion</span><span>Reduced 대응</span></div>
-      </dl>
-    </div>
-    <div class="reveal">
-      <h2>이 페이지에는 프레임워크가 <em>하나도</em> 없다</h2>
-      <p>HTML 한 장, CSS 한 벌, 짧은 스크립트. 망점 필드는 Canvas로 그리고, 움직임을 원치 않는 사용자에게는 자동으로 멈춥니다. 푸시하면 Actions가 그대로 배포합니다.</p>
-      <a class="btn" href="https://github.com/JeongHyeon2/test-claude">소스 보기 <span>→</span></a>
+    <div class="tally">
+      <div class="row"><span>표본</span><span>10</span></div>
+      <div class="row"><span>CSS만으로</span><span>4</span></div>
+      <div class="row"><span>SVG 필터</span><span>1</span></div>
+      <div class="row"><span>Canvas 2D</span><span>5</span></div>
+      <div class="row"><span>라이브러리</span><span>0</span></div>
+      <div class="row"><span>Reduced motion</span><span>기본 정지</span></div>
     </div>
   </section>
 
   <footer>
-    <span>활자 견본실 · No. 01</span>
-    <span>Set in Bodoni Moda &amp; Pretendard</span>
+    <span>움직이는 표본 · No. 02</span>
+    <span><a href="./specimen.html">← 활자 견본실</a></span>
     <span><a href="https://github.com/JeongHyeon2/test-claude">github.com/JeongHyeon2</a></span>
   </footer>
 
@@ -595,129 +482,376 @@ footer a:hover { border-bottom-color: var(--ultra); color: var(--ultra); }
 <script>
 (function () {
   "use strict";
+
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* ── 로드 시 헤드라인 등장 ── */
-  requestAnimationFrame(function () { document.body.classList.add("loaded"); });
-
-  /* ── 상단 바 고정 상태 ── */
-  var topbar = document.getElementById("topbar");
-  var onScroll = function () {
-    topbar.dataset.stuck = window.scrollY > 8 ? "true" : "false";
+  var body = document.body;
+  var C = {
+    bone:  "#e9e6df",
+    ultra: "#7b88ff",
+    coral: "#ff9184",
+    dim:   "#6a7183",
+    case:  "#0e1014"
   };
+
+  /* ── 모션 스위치 ── */
+  var toggle = document.getElementById("motionToggle");
+  function setMotion(on) {
+    body.dataset.motion = on ? "on" : "off";
+    toggle.setAttribute("aria-pressed", String(on));
+    running.forEach(function (r) { on ? r.start() : r.stop(); });
+  }
+  toggle.addEventListener("click", function () {
+    setMotion(body.dataset.motion !== "on");
+  });
+
+  /* ── 상단 바 ── */
+  var topbar = document.getElementById("topbar");
+  var onScroll = function () { topbar.dataset.stuck = window.scrollY > 8 ? "true" : "false"; };
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
 
-  /* ── 스크롤 등장 ── */
-  var targets = document.querySelectorAll(".reveal, .stagger");
-  if ("IntersectionObserver" in window && !reduce) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-      });
-    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.1 });
-    targets.forEach(function (t) { io.observe(t); });
-  } else {
-    targets.forEach(function (t) { t.classList.add("in"); });
+  /* ── CSS 표본의 DOM 생성 ── */
+  var pendHost = document.querySelector('[data-build="pendulums"]');
+  for (var i = 0; i < 16; i++) {
+    var rod = document.createElement("div");
+    rod.className = "pend";
+    /* 주기가 T/(24+i)라서 모든 진자가 T마다 다시 한 줄로 모인다 */
+    rod.style.setProperty("--t", (48000 / (24 + i) / 2).toFixed(0) + "ms");
+    pendHost.appendChild(rod);
   }
 
-  /* ── 견본 조작대 ── */
-  var stage = document.getElementById("stage");
-  var fmt = {
-    sz: function (v) { return v + "px"; },
-    tr: function (v) { return (v / 1000).toFixed(3) + "em"; },
-    lh: function (v) { return (v / 100).toFixed(2); },
-    wt: function (v) { return String(v); }
-  };
-  var margins = { sz: "68 px", tr: "-0.020 em", lh: "1.15", wt: "800" };
-  ["sz", "tr", "lh", "wt"].forEach(function (key) {
-    var input = document.getElementById("r-" + key);
-    var out = document.getElementById("o-" + key);
-    var note = document.getElementById("m-" + key);
-    var apply = function () {
-      var raw = Number(input.value);
-      var css = key === "tr" ? raw / 1000 : key === "lh" ? raw / 100 : raw;
-      stage.style.setProperty("--" + key, css);
-      out.textContent = fmt[key](raw);
-      if (note) note.textContent = fmt[key](raw).replace(/(px|em)$/, " $1");
-    };
-    input.addEventListener("input", apply);
-    apply();
+  var rippleHost = document.querySelector('[data-build="ripple"]');
+  var N = 14, mid = (N - 1) / 2;
+  for (var y = 0; y < N; y++) {
+    var row = document.createElement("div");
+    row.className = "row";
+    for (var x = 0; x < N; x++) {
+      var dot = document.createElement("i");
+      var dist = Math.sqrt((x - mid) * (x - mid) + (y - mid) * (y - mid));
+      dot.style.setProperty("--d", (dist * 95).toFixed(0) + "ms");
+      row.appendChild(dot);
+    }
+    rippleHost.appendChild(row);
+  }
+
+  document.querySelectorAll(".cube").forEach(function (cube) {
+    var half = function () { cube.style.setProperty("--half", (cube.clientWidth / 2).toFixed(1)); };
+    half();
+    new ResizeObserver(half).observe(cube);
   });
 
-  /* ── 망점 필드: 커서에 반응하는 하프톤 ── */
-  var canvas = document.getElementById("field");
-  var ctx = canvas.getContext("2d");
-  var W = 0, H = 0, dpr = 1;
-  var GAP = 30, R = 1.5;
-  var pointer = { x: -9999, y: -9999 };
-  var target = { x: -9999, y: -9999 };
+  /* ── Canvas 표본 공통 골격 ── */
+  function mount(host, spec) {
+    var cv = document.createElement("canvas");
+    host.appendChild(cv);
+    var ctx = cv.getContext("2d");
+    var w = 0, h = 0, raf = 0, alive = false, st = null;
 
-  function readInk() {
-    var v = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
-    return v || "#7b8291";
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = host.clientWidth; h = host.clientHeight;
+      if (!w || !h) return;
+      cv.width = Math.floor(w * dpr);
+      cv.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      st = spec.init(w, h);
+      ctx.fillStyle = C.case;
+      ctx.fillRect(0, 0, w, h);
+    }
+    function loop(t) {
+      if (!alive) return;
+      spec.frame(ctx, w, h, t, st);
+      raf = requestAnimationFrame(loop);
+    }
+    var api = {
+      start: function () {
+        if (alive || body.dataset.motion !== "on") return;
+        if (!w) resize();
+        alive = true;
+        raf = requestAnimationFrame(loop);
+      },
+      stop: function () { alive = false; cancelAnimationFrame(raf); },
+      still: function () { if (!w) resize(); spec.frame(ctx, w, h, performance.now(), st); },
+      reseed: function () { resize(); api.still(); }
+    };
+    new ResizeObserver(function () { var was = alive; api.stop(); resize(); if (was) api.start(); else api.still(); }).observe(host);
+    if (spec.clickable) {
+      host.style.cursor = "pointer";
+      host.addEventListener("click", function () { var was = alive; api.stop(); resize(); was ? api.start() : api.still(); });
+    }
+    return api;
   }
-  var dotColor = readInk();
 
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = canvas.clientWidth;
-    H = canvas.clientHeight;
-    canvas.width = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    dotColor = readInk();
-    if (reduce) draw(0);
-  }
-
-  function draw(t) {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dotColor;
-    var reach = 190;
-    for (var y = GAP / 2; y < H; y += GAP) {
-      for (var x = GAP / 2; x < W; x += GAP) {
-        var r = R;
-        if (!reduce) {
-          var dx = x - pointer.x, dy = y - pointer.y;
-          var d = Math.sqrt(dx * dx + dy * dy);
-          if (d < reach) {
-            var f = 1 - d / reach;
-            r += f * f * 3.6;
-          }
-          r += Math.sin((x + y) * 0.012 + t * 0.0009) * 0.35;
+  /* 04 — 무리 짓기 */
+  var boids = {
+    init: function (w, h) {
+      var n = Math.round(Math.min(120, Math.max(55, w * h / 2400)));
+      var a = [];
+      for (var i = 0; i < n; i++) {
+        var ang = Math.random() * 6.2832;
+        a.push({ x: Math.random() * w, y: Math.random() * h, vx: Math.cos(ang), vy: Math.sin(ang) });
+      }
+      return a;
+    },
+    frame: function (ctx, w, h, t, a) {
+      ctx.fillStyle = "rgba(14,16,20,.3)";
+      ctx.fillRect(0, 0, w, h);
+      var R = 32, R2 = R * R, SEP = 15, SEP2 = SEP * SEP;
+      for (var i = 0; i < a.length; i++) {
+        var b = a[i], cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0, n = 0;
+        for (var j = 0; j < a.length; j++) {
+          if (i === j) continue;
+          var o = a[j], dx = o.x - b.x, dy = o.y - b.y, d2 = dx * dx + dy * dy;
+          if (d2 > R2) continue;
+          n++; cx += o.x; cy += o.y; ax += o.vx; ay += o.vy;
+          if (d2 < SEP2 && d2 > 0) { sx -= dx / d2; sy -= dy / d2; }
         }
-        if (r <= 0.1) continue;
-        ctx.globalAlpha = reduce ? 0.16 : 0.14 + Math.min(r / 5, 1) * 0.5;
+        if (n) {
+          b.vx += ((cx / n - b.x) * 0.0009) + ((ax / n - b.vx) * 0.045) + sx * 5.0;
+          b.vy += ((cy / n - b.y) * 0.0009) + ((ay / n - b.vy) * 0.045) + sy * 5.0;
+        }
+        var sp = Math.hypot(b.vx, b.vy) || 1;
+        b.vx = b.vx / sp * 1.25; b.vy = b.vy / sp * 1.25;
+        b.x += b.vx; b.y += b.vy;
+        if (b.x < -6) b.x = w + 6; else if (b.x > w + 6) b.x = -6;
+        if (b.y < -6) b.y = h + 6; else if (b.y > h + 6) b.y = -6;
+
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(Math.atan2(b.vy, b.vx));
+        ctx.fillStyle = i % 9 === 0 ? C.coral : C.bone;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, 6.2832);
-        ctx.fill();
+        ctx.moveTo(5, 0); ctx.lineTo(-3.5, 2.6); ctx.lineTo(-3.5, -2.6);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
       }
     }
-    ctx.globalAlpha = 1;
-  }
+  };
 
-  function loop(t) {
-    pointer.x += (target.x - pointer.x) * 0.09;
-    pointer.y += (target.y - pointer.y) * 0.09;
-    draw(t);
-    requestAnimationFrame(loop);
-  }
+  /* 06 — 흐름장 */
+  var flow = {
+    init: function (w, h) {
+      var n = Math.round(Math.min(900, Math.max(280, w * h / 340)));
+      var p = new Float32Array(n * 2);
+      for (var i = 0; i < n; i++) { p[i * 2] = Math.random() * w; p[i * 2 + 1] = Math.random() * h; }
+      return { p: p, n: n, k: 0 };
+    },
+    frame: function (ctx, w, h, t, s) {
+      ctx.fillStyle = "rgba(14,16,20,.03)";
+      ctx.fillRect(0, 0, w, h);
+      var p = s.p;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(233,230,223,.5)";
+      for (var i = 0; i < s.n; i++) {
+        var x = p[i * 2], y = p[i * 2 + 1];
+        var ang = (Math.sin(x * 0.0062) + Math.cos(y * 0.0071) + Math.sin((x + y) * 0.0033)) * 2.4 + t * 0.00022;
+        var nx = x + Math.cos(ang) * 1.15, ny = y + Math.sin(ang) * 1.15;
+        if (nx < 0 || nx > w || ny < 0 || ny > h) { nx = Math.random() * w; ny = Math.random() * h; }
+        else { ctx.moveTo(x, y); ctx.lineTo(nx, ny); }
+        p[i * 2] = nx; p[i * 2 + 1] = ny;
+      }
+      ctx.stroke();
+      /* 일부만 강조색으로 한 번 더 */
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(123,136,255,.5)";
+      for (var j = 0; j < s.n; j += 11) {
+        ctx.moveTo(p[j * 2], p[j * 2 + 1]);
+        ctx.lineTo(p[j * 2] + 1, p[j * 2 + 1] + 1);
+      }
+      ctx.stroke();
+    }
+  };
 
-  window.addEventListener("resize", resize);
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
-    dotColor = readInk();
-    if (reduce) draw(0);
+  /* 07 — 로렌츠 끌개 */
+  var lorenz = {
+    init: function () {
+      return { x: 0.01, y: 0, z: 0, pts: [], spin: 0 };
+    },
+    frame: function (ctx, w, h, t, s) {
+      var dt = 0.006, sg = 10, rho = 28, beta = 8 / 3;
+      for (var k = 0; k < 12; k++) {
+        var dx = sg * (s.y - s.x);
+        var dy = s.x * (rho - s.z) - s.y;
+        var dz = s.x * s.y - beta * s.z;
+        s.x += dx * dt; s.y += dy * dt; s.z += dz * dt;
+        s.pts.push(s.x, s.y, s.z);
+      }
+      var MAX = 2600 * 3;
+      if (s.pts.length > MAX) s.pts.splice(0, s.pts.length - MAX);
+
+      ctx.fillStyle = C.case;
+      ctx.fillRect(0, 0, w, h);
+      s.spin = t * 0.00013;
+      var cos = Math.cos(s.spin), sin = Math.sin(s.spin);
+      var sc = Math.min(w, h) / 62;
+      var cxp = w / 2, cyp = h / 2 + Math.min(w, h) * 0.30;
+      var n = s.pts.length / 3;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var i = 0; i < n; i++) {
+        var X = s.pts[i * 3], Y = s.pts[i * 3 + 1], Z = s.pts[i * 3 + 2];
+        var rx = X * cos - Y * sin;
+        var px = cxp + rx * sc, py = cyp - Z * sc;
+        i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      }
+      ctx.strokeStyle = "rgba(123,136,255,.55)";
+      ctx.stroke();
+      /* 머리쪽 짧은 구간만 밝게 */
+      ctx.beginPath();
+      for (var m = Math.max(0, n - 150); m < n; m++) {
+        var X2 = s.pts[m * 3], Y2 = s.pts[m * 3 + 1], Z2 = s.pts[m * 3 + 2];
+        var rx2 = X2 * cos - Y2 * sin;
+        var px2 = cxp + rx2 * sc, py2 = cyp - Z2 * sc;
+        m === Math.max(0, n - 150) ? ctx.moveTo(px2, py2) : ctx.lineTo(px2, py2);
+      }
+      ctx.strokeStyle = C.coral;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+  };
+
+  /* 09 — 생명 게임 */
+  var life = {
+    clickable: true,
+    init: function (w, h) {
+      var cell = Math.max(5, Math.round(Math.min(w, h) / 34));
+      var cols = Math.floor(w / cell), rows = Math.floor(h / cell);
+      var g = new Uint8Array(cols * rows);
+      for (var i = 0; i < g.length; i++) g[i] = Math.random() < 0.32 ? 1 : 0;
+      return { g: g, n: new Uint8Array(cols * rows), cols: cols, rows: rows, cell: cell, tick: 0, age: 0 };
+    },
+    frame: function (ctx, w, h, t, s) {
+      s.tick++;
+      if (s.tick % 5 === 0) {
+        var g = s.g, nx = s.n, cols = s.cols, rows = s.rows;
+        for (var y = 0; y < rows; y++) {
+          for (var x = 0; x < cols; x++) {
+            var c = 0;
+            for (var dy = -1; dy <= 1; dy++) {
+              for (var dx = -1; dx <= 1; dx++) {
+                if (!dx && !dy) continue;
+                c += g[((y + dy + rows) % rows) * cols + ((x + dx + cols) % cols)];
+              }
+            }
+            var i = y * cols + x;
+            nx[i] = g[i] ? (c === 2 || c === 3 ? 1 : 0) : (c === 3 ? 1 : 0);
+          }
+        }
+        s.g.set(nx);
+        s.age++;
+        /* 판이 굳으면 조용히 다시 뿌린다 */
+        if (s.age > 260) { for (var k = 0; k < s.g.length; k++) s.g[k] = Math.random() < 0.32 ? 1 : 0; s.age = 0; }
+      }
+      ctx.fillStyle = C.case;
+      ctx.fillRect(0, 0, w, h);
+      var cell = s.cell, pad = cell * 0.16;
+      ctx.fillStyle = C.bone;
+      for (var yy = 0; yy < s.rows; yy++) {
+        for (var xx = 0; xx < s.cols; xx++) {
+          if (!s.g[yy * s.cols + xx]) continue;
+          ctx.fillRect(xx * cell + pad, yy * cell + pad, cell - pad * 2, cell - pad * 2);
+        }
+      }
+    }
+  };
+
+  /* 10 — 트뤼셰 타일 */
+  var truchet = {
+    clickable: true,
+    init: function (w, h) {
+      var size = Math.max(20, Math.round(Math.min(w, h) / 7));
+      var cols = Math.ceil(w / size), rows = Math.ceil(h / size);
+      var o = new Uint8Array(cols * rows);
+      for (var i = 0; i < o.length; i++) o[i] = Math.random() < 0.5 ? 0 : 1;
+      return { o: o, cols: cols, rows: rows, size: size, drawn: 0, hold: 0, cleared: false };
+    },
+    frame: function (ctx, w, h, t, s) {
+      if (!s.cleared) { ctx.fillStyle = C.case; ctx.fillRect(0, 0, w, h); s.cleared = true; }
+      var total = s.cols * s.rows;
+      if (s.drawn >= total) {
+        if (++s.hold > 150) {
+          for (var i = 0; i < s.o.length; i++) s.o[i] = Math.random() < 0.5 ? 0 : 1;
+          s.drawn = 0; s.hold = 0; s.cleared = false;
+        }
+        return;
+      }
+      var per = Math.max(1, Math.round(total / 90));
+      var sz = s.size, r = sz / 2;
+      ctx.lineWidth = Math.max(1.5, sz * 0.1);
+      ctx.lineCap = "round";
+      for (var k = 0; k < per && s.drawn < total; k++, s.drawn++) {
+        var idx = s.drawn;
+        var cx = (idx % s.cols) * sz, cy = Math.floor(idx / s.cols) * sz;
+        ctx.strokeStyle = idx % 7 === 0 ? C.coral : (idx % 3 === 0 ? C.ultra : C.dim);
+        ctx.beginPath();
+        if (s.o[idx]) {
+          ctx.arc(cx, cy, r, 0, Math.PI / 2);
+          ctx.moveTo(cx + sz - r, cy + sz);
+          ctx.arc(cx + sz, cy + sz, r, Math.PI, Math.PI * 1.5);
+        } else {
+          ctx.arc(cx + sz, cy, r, Math.PI / 2, Math.PI);
+          ctx.moveTo(cx, cy + sz - r);
+          ctx.arc(cx, cy + sz, r, Math.PI * 1.5, Math.PI * 2);
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  var SPECS = { boids: boids, flow: flow, lorenz: lorenz, life: life, truchet: truchet };
+  var running = [];
+  var byNode = new Map();
+
+  document.querySelectorAll("[data-demo]").forEach(function (host) {
+    var api = mount(host, SPECS[host.dataset.demo]);
+    byNode.set(host.closest(".vitrine"), api);
+    running.push(api);
   });
-  window.addEventListener("pointermove", function (e) {
-    target.x = e.clientX;
-    target.y = e.clientY;
-  }, { passive: true });
-  window.addEventListener("pointerleave", function () {
-    target.x = -9999; target.y = -9999;
+
+  /* ── 보이는 것만 돌린다 ── */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      var v = e.target;
+      var api = byNode.get(v);
+      if (e.isIntersecting) {
+        v.classList.add("seen", "live");
+        if (api) api.start();
+      } else {
+        v.classList.remove("live");
+        if (api) api.stop();
+      }
+    });
+  }, { rootMargin: "120px 0px", threshold: 0.01 });
+  document.querySelectorAll(".vitrine").forEach(function (v) { io.observe(v); });
+
+  /* ── 기법 거르기 ── */
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".vitrine"));
+  var countEl = document.getElementById("count");
+  document.querySelectorAll(".filters button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var f = btn.dataset.filter;
+      document.querySelectorAll(".filters button").forEach(function (b) {
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      var shown = 0;
+      cards.forEach(function (c) {
+        var on = f === "all" || c.dataset.tech === f;
+        c.hidden = !on;
+        if (on) shown++;
+        var api = byNode.get(c);
+        if (api && !on) api.stop();
+      });
+      countEl.textContent = shown + " / " + cards.length;
+    });
   });
 
-  resize();
-  if (!reduce) requestAnimationFrame(loop);
+  /* ── 움직임을 원치 않으면 정지 상태로 연다 ── */
+  if (reduce) {
+    setMotion(false);
+    cards.forEach(function (c) { c.classList.add("seen"); });
+    requestAnimationFrame(function () { running.forEach(function (r) { r.still(); }); });
+  }
 })();
 </script>
 </body>
