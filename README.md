@@ -57,6 +57,12 @@ React + Vite, 속도 그래프는 Recharts. 앱은 `framespeed-web/` 에 있습�
 이 앱에서 유일하게 끝까지 되는 산출물입니다. 규칙은 `src/styles.css` 의 `@media print` 에
 모여 있고, 자세한 내용은 `framespeed-web/README.md` 에 있습니다.
 
+## 엑셀 저장
+
+`엑셀 저장` 버튼은 브라우저에서 `.xlsx` 를 만들어 내려줍니다 — 요약 · 시계열 · 구간 ·
+근거 프레임 네 시트입니다. 시계열에는 표본마다 시각 · 속도 · 하한 · 상한 · 가감속 ·
+속한 구간이 들어갑니다. 자세한 내용은 `framespeed-web/README.md` 에 있습니다.
+
 ## 프레임 이미지가 비어 있는 이유
 
 `evidence_frames` 에는 행이 있지만 `storage.objects` 는 0건입니다 — 시드가 DB 행만 넣고

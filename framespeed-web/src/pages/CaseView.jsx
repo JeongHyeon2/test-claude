@@ -4,10 +4,22 @@ import { upsertCase } from '../store';
 import SpeedChart, { kindOf } from '../components/SpeedChart';
 import { TopBar, Copy } from '../components/Layout';
 import { n1, dt, d8 } from '../lib/fmt';
+import { downloadExcel } from '../lib/excel';
 
 export default function CaseView({ code }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState('');
+  const [xlsx, setXlsx] = useState('');   // '' | 'working' | 'failed'
+
+  async function saveExcel() {
+    setXlsx('working');
+    try {
+      await downloadExcel(d, code);
+      setXlsx('');
+    } catch {
+      setXlsx('failed');
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -55,11 +67,19 @@ export default function CaseView({ code }) {
   return (
     <>
       <TopBar title={d.file_name} crumb={`분석 완료 ${dt(d.analyzed_at)}`}>
+        <button className="btn btn-sm" disabled={xlsx === 'working'} onClick={saveExcel}>
+          {xlsx === 'working' ? '만드는 중' : '엑셀 저장'}
+        </button>
         <button className="btn btn-sm" onClick={() => window.print()}>PDF 저장 · 인쇄</button>
         <button className="btn btn-primary btn-sm" disabled>전문가 검토 신청</button>
       </TopBar>
 
       <div className="body">
+        {xlsx === 'failed' && (
+          <div className="note note-bad" style={{ marginBottom: 16 }}>
+            엑셀 파일을 만들지 못했습니다. 다시 눌러 주세요.
+          </div>
+        )}
         <div className="print-head">
           <div className="ph-title">속도 분석 리포트</div>
           <div className="ph-file">{d.file_name}</div>
