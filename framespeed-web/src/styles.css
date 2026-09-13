@@ -220,3 +220,52 @@ dl.kv dt:last-of-type, dl.kv dd:last-of-type { border-bottom: 0; }
 
 /* 숫자 칸이 좁다고 두 줄로 접히면 표를 훑을 수 없다. */
 table.t td.num, table.t td.r { white-space: nowrap; }
+
+/* ── 인쇄 · PDF 저장 ─────────────────────────────────
+ *
+ * 출력물은 사건 파일에 끼워 넣는 문서다. 화면의 좌측 메뉴·버튼·검색창은
+ * 종이에 있을 이유가 없고, 반대로 화면에선 군더더기인 머리말(파일명 ·
+ * 조회 번호 · 영상 해시 · 분석 일시)은 종이에 반드시 있어야 한다 —
+ * 출력물만 돌아다녀도 어느 영상의 어느 분석인지 남아야 하기 때문이다.
+ */
+.print-head { display: none; }
+
+@page { size: A4 portrait; margin: 14mm; }
+
+@media print {
+  /* 띠·알림·구분 색이 빠지면 감속 구간과 고지 문안이 그냥 회색 덩어리가 된다. */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  body { background: #fff; font-size: 10.5pt; }
+  .app { display: block; }
+  .rail, .topbar, .print-hide { display: none !important; }
+  .body { padding: 0; }
+
+  .print-head { display: block; margin-bottom: 10mm; }
+  .ph-title { font-size: 9pt; color: #5b6470; letter-spacing: .06em; }
+  .ph-file { font-size: 16pt; font-weight: 700; letter-spacing: -.02em; margin: 1mm 0 4mm; }
+  .ph-meta { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  .ph-meta th, .ph-meta td { text-align: left; padding: 1.6mm 0; border-bottom: .3pt solid #dfe3e9; vertical-align: top; }
+  .ph-meta th { width: 22mm; color: #8b95a3; font-weight: 500; }
+  .ph-meta td { font-family: var(--mono); font-size: 8pt; word-break: break-all; padding-right: 6mm; }
+
+  /* 패널이 페이지 경계에서 잘리면 표 머리와 몸통이 갈라진다. */
+  .panel { border: .3pt solid #dfe3e9; border-radius: 0; break-inside: avoid; }
+  .panel + .panel { margin-top: 5mm; }
+  .grid-2 { display: block; }
+  .grid-2 > div + div { margin-top: 5mm; }
+
+  .panel-hd { padding: 2.5mm 4mm; border-bottom: .3pt solid #eceff3; }
+  .panel-bd { padding: 4mm; }
+  table.t th, table.t td { padding: 2mm 4mm; }
+  table.t th { background: #fafbfc; }
+  .verdict { padding: 4mm; }
+  .v-main .v { font-size: 20pt; }
+  .v-cols { gap: 10mm; }
+  .legend { padding: 0 4mm 3mm; }
+
+  /* 그래프는 한 페이지 안에 통째로. */
+  .panel .recharts-wrapper { break-inside: avoid; }
+
+  a[href]::after { content: none; }   /* 브라우저가 URL 을 덧붙이지 않게 */
+}

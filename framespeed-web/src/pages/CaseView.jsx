@@ -55,12 +55,23 @@ export default function CaseView({ code }) {
   return (
     <>
       <TopBar title={d.file_name} crumb={`분석 완료 ${dt(d.analyzed_at)}`}>
-        <button className="btn btn-sm" onClick={() => window.print()}>인쇄</button>
-        <button className="btn btn-sm" disabled>PDF 내려받기</button>
+        <button className="btn btn-sm" onClick={() => window.print()}>PDF 저장 · 인쇄</button>
         <button className="btn btn-primary btn-sm" disabled>전문가 검토 신청</button>
       </TopBar>
 
       <div className="body">
+        <div className="print-head">
+          <div className="ph-title">속도 분석 리포트</div>
+          <div className="ph-file">{d.file_name}</div>
+          <table className="ph-meta">
+            <tbody>
+              <tr><th>조회 번호</th><td>{code}</td><th>분석 완료</th><td>{dt(d.analyzed_at)}</td></tr>
+              <tr><th>영상 해시</th><td colSpan={3}>SHA-256 {d.sha256}</td></tr>
+              <tr><th>모델</th><td>{r.model_version || '—'}</td><th>보관 만료</th>
+                  <td>{d8(expires.toISOString())}{expired ? ' (만료)' : ` (${daysLeft}일 남음)`}</td></tr>
+            </tbody>
+          </table>
+        </div>
         {expired && (
           <div className="note note-bad" style={{ marginBottom: 16 }}>
             보관 기간(분석 후 90일)이 지난 결과입니다. 원본 영상과 근거 프레임은 이미 삭제되었고,
@@ -87,7 +98,10 @@ export default function CaseView({ code }) {
             <div className="panel">
               <div className="panel-hd">
                 <h2>시간축 속도</h2>
-                <span className="sub">0 – {n1(r.impact_at_sec)}초 · 그래프에 마우스를 올리면 해당 시점 값</span>
+                <span className="sub">
+                  0 – {n1(r.impact_at_sec)}초
+                  <span className="print-hide"> · 그래프에 마우스를 올리면 해당 시점 값</span>
+                </span>
               </div>
               <SpeedChart
                 series={r.series} segments={d.segments} margin={r.error_margin_kmh}
@@ -123,13 +137,13 @@ export default function CaseView({ code }) {
               <div className="panel">
                 <div className="panel-hd"><h2>근거 프레임</h2><span className="sub">{d.frames.length}장</span></div>
                 <table className="t">
-                  <thead><tr><th style={{ width: 70 }}>번호</th><th>영상 시각</th><th className="r">보기</th></tr></thead>
+                  <thead><tr><th style={{ width: 70 }}>번호</th><th>영상 시각</th><th className="r print-hide">보기</th></tr></thead>
                   <tbody>
                     {d.frames.map((f) => (
                       <tr key={f.id || f.seq}>
                         <td className="num">{String(f.seq).padStart(2, '0')}</td>
                         <td className="num">{n1(f.timestamp_sec)}초</td>
-                        <td className="r"><button className="btn btn-sm" disabled>이미지</button></td>
+                        <td className="r print-hide"><button className="btn btn-sm" disabled>이미지</button></td>
                       </tr>
                     ))}
                   </tbody>
@@ -139,7 +153,7 @@ export default function CaseView({ code }) {
           </div>
 
           <div>
-            <div className="panel">
+            <div className="panel print-hide">
               <div className="panel-hd"><h2>사건 정보</h2></div>
               <div className="panel-bd" style={{ paddingTop: 4, paddingBottom: 4 }}>
                 <dl className="kv">

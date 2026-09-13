@@ -139,7 +139,9 @@ export default function SpeedChart({ series, segments, margin = 0, impactAt, pea
         <span><i style={{ background: '#b6c8ef' }} />오차 범위 ±{n1(margin)}km/h</span>
         <span><i style={{ background: '#eecdc9' }} />감속 구간</span>
         {!compact && (
-          <span style={{ marginLeft: 'auto' }}>그래프에 마우스를 올리면 해당 시점 값이 표시됩니다</span>
+          <span className="print-hide" style={{ marginLeft: 'auto' }}>
+            그래프에 마우스를 올리면 해당 시점 값이 표시됩니다
+          </span>
         )}
       </div>
     </div>
