@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchReport } from '../api';
 import { listCases, upsertCase, removeCase, SAMPLE_CODE } from '../store';
-import { TopBar, DevNote } from '../components/Layout';
+import { TopBar } from '../components/Layout';
 import { n1, dt, d8 } from '../lib/fmt';
 
 /** 표에 쓸 한 줄만 뽑는다. 사건 내용은 브라우저에 남기지 않는다. */
@@ -152,11 +152,6 @@ export default function Cases() {
             </div>
           )}
         </div>
-
-        <DevNote>
-          이 목록은 <b>이 브라우저에만</b> 남습니다. 브라우저에 실린 키로는 사건 표를 통째로 읽을 수 없어(RLS),
-          조회 번호로 불러온 사건만 쌓입니다. 계정별 사건 목록은 서버에서 내려줘야 합니다.
-        </DevNote>
       </div>
     </>
   );

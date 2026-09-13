@@ -46,15 +46,6 @@ export function TopBar({ title, crumb, children }) {
   );
 }
 
-export function DevNote({ children }) {
-  return (
-    <details className="dev">
-      <summary>이 환경에서 동작하지 않는 것</summary>
-      <div className="body">{children}</div>
-    </details>
-  );
-}
-
 export function Copy({ text, label = '복사' }) {
   const [hit, setHit] = React.useState(false);
   return (

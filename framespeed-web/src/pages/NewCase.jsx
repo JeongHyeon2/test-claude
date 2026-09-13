@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { TopBar, DevNote } from '../components/Layout';
+import { TopBar } from '../components/Layout';
 import { n1 } from '../lib/fmt';
 
 const LIMITS = {
@@ -105,15 +105,12 @@ export default function NewCase() {
   if (done) {
     return (
       <>
-        <TopBar title="새 분석 접수" crumb="접수 직전 확인">
+        <TopBar title="새 분석 접수" crumb="접수 확인">
           <button className="btn btn-sm" onClick={() => { setDone(null); setF(null); setEmail(''); setRef(''); setAgree(false); }}>
             다른 영상 접수
           </button>
         </TopBar>
         <div className="body">
-          <div className="note note-info" style={{ marginBottom: 16 }}>
-            브라우저에서 할 수 있는 검사는 모두 마쳤습니다. 실제 접수는 서버가 처리합니다.
-          </div>
           <div className="panel" style={{ maxWidth: 620 }}>
             <div className="panel-hd"><h2>접수 내용</h2></div>
             <div className="panel-bd" style={{ paddingTop: 4, paddingBottom: 4 }}>
@@ -127,11 +124,10 @@ export default function NewCase() {
               </dl>
             </div>
           </div>
-          <DevNote>
-            확장자 · 용량 · 길이 · 해상도 · 영상 해시 검사는 <b>실제로 수행했습니다</b>.
-            그다음 단계인 접수(<code>POST /api/jobs</code>)는 저장소에 행을 만들고 업로드 주소를 발급하는 일이라
-            서버 권한이 필요합니다. 브라우저에 실린 키에는 쓰기 권한이 없습니다.
-          </DevNote>
+          <div className="row" style={{ marginTop: 14 }}>
+            <button className="btn btn-primary" disabled>접수</button>
+            <span className="muted">접수 후 약 3분이면 결과가 나옵니다.</span>
+          </div>
         </div>
       </>
     );

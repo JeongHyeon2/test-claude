@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchReport } from '../api';
 import { upsertCase } from '../store';
 import SpeedChart, { kindOf } from '../components/SpeedChart';
-import { TopBar, DevNote, Copy } from '../components/Layout';
+import { TopBar, Copy } from '../components/Layout';
 import { n1, dt, d8 } from '../lib/fmt';
 
 export default function CaseView({ code }) {
@@ -175,13 +175,6 @@ export default function CaseView({ code }) {
             </div>
           </div>
         </div>
-
-        <DevNote>
-          이 화면은 데이터베이스를 <b>읽기만</b> 합니다. PDF 생성 · 전문가 검토 신청 · 정확도 피드백은
-          모두 <b>쓰기</b>라 서버가 필요합니다(<code>apps/web/app/api/*</code>). 근거 프레임 이미지도
-          비공개 저장소에 있어 서버가 발급한 링크로만 열립니다. 권한 문제가 아니라 설계입니다 —
-          브라우저에 실린 키에는 쓰기 권한이 없습니다.
-        </DevNote>
       </div>
     </>
   );
